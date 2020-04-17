@@ -1,0 +1,10 @@
+Notes
+
+Use 
+
+```{r child = 'chapter1.Rmd'}
+```
+
+to call each separate Rmd file from the main document
+
+All hypotheses are specified, continue with exploratory stuff

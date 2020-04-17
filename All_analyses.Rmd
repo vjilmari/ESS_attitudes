@@ -1,0 +1,38 @@
+---
+title: Association between Attitudes towards Refugees and Attitudes towards the Environment in the European Social Survey
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 4
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+fontsize: 12pt
+geometry: margin=0.5in
+#documentclass: article
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 130)
+```
+
+\newpage
+
+# Preparations
+
+```{r child = 'Preparations.Rmd'}
+```
+
+# Hypothesis 5
+
+\newpage
+
+```{r child = 'Hypothesis5.Rmd'}
+```

@@ -1,0 +1,347 @@
+---
+title: "Hypothesis 2"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Hypothesis 2: Those who voted for pro-environment parties will report higher pro-refugee attitudes than those who voted for anti-immigration parties
+
+### Model 1: random intercepts + covariates (same as in H1)
+
+```{r}
+H2.mod1<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup
+                ,data=dat,REML=F)
+
+
+(FE.H2.mod1<-getFE(H2.mod1))
+(VC.H2.mod1<-getVC(H2.mod1))
+
+```
+
+\newpage
+
+
+### Model 2: Categorical predictor at level-2
+
+```{r message=FALSE}
+H2.mod2<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                all.parties.lvl2
+                ,data=dat,REML=F)
+
+
+(FE.H2.mod2<-getFE(H2.mod2))
+(VC.H2.mod2<-getVC(H2.mod2))
+
+anova(H2.mod1,H2.mod2)
+anova(H2.mod2)
+
+
+#see how much variance was explained at level-2
+
+##lvl 2: voting group
+
+(H2.total.eff<-(VC.H2.mod1[VC.H2.mod1$grp=="voting.group","est_SD2"]-
+     VC.H2.mod2[VC.H2.mod2$grp=="voting.group","est_SD2"])/
+  VC.H2.mod1[VC.H2.mod1$grp=="voting.group","est_SD2"])
+
+```
+
+\newpage
+
+#### Marginal means for and contrasts between Pro-environment and Anti-immigration parties
+
+```{r message=FALSE}
+H2.mod2.mmeans<-emmeans(H2.mod2,specs="all.parties.lvl2")
+
+H2.mod2.mmeans.tab<-cbind(group=data.frame(H2.mod2.mmeans)[,1],
+      data.frame(H2.mod2.mmeans)[,2:6])
+H2.mod2.mmeans.tab$p<-
+  2*(1-pnorm(abs(H2.mod2.mmeans.tab$emmean/
+                   H2.mod2.mmeans.tab$SE)))
+H2.mod2.mmeans.tab$adj.p<-
+  p.adjust(H2.mod2.mmeans.tab$p,method="holm")
+
+H2.mod2.mmeans.tab<-
+  cbind(group=H2.mod2.mmeans.tab[,1],
+      round(H2.mod2.mmeans.tab[,c(2,3)],2),
+      round(H2.mod2.mmeans.tab[,c(7,8)],4),
+      round(H2.mod2.mmeans.tab[,c(5,6)],2))
+H2.mod2.mmeans.tab
+
+write.csv2(H2.mod2.mmeans.tab,"H2.mod2.mmeans.tab.csv")
+
+
+#contrast between anti-immigration and pro-environment
+(H2.contrast<-data.frame(pairs(H2.mod2.mmeans, exclude = c(2:9),reverse=T)))
+#contrast for all groups against mean of other groups
+contrast(H2.mod2.mmeans, "del.eff", by = NULL,adjust=c("holm"))
+#contrast for three voting groups
+(H2.more.contrasts<-data.frame(pairs(H2.mod2.mmeans, 
+         exclude=c(2:8), by = NULL,adjust=c("holm"),reverse=T)))
+
+
+```
+
+\newpage
+
+#### Effect size for the difference between Anti-immigration and Pro-environment party voters
+
+Pool the standard deviations first within both groups and then across
+
+```{r}
+
+H2.anti.imm.sd.dat<-dat %>%
+  filter(all.parties.lvl2=="Anti-immigration party") %>%
+  group_by(all.parties.lvl2,cntry) %>%
+  summarize(pro.ref.mean=mean(refugees),
+            pro.ref.sd=sd(refugees),
+            n=n())
+H2.anti.imm.sd.dat$numerator<-
+  (H2.anti.imm.sd.dat$n-1)*H2.anti.imm.sd.dat$pro.ref.sd^2
+
+H2.anti.imm.sd<-sqrt(sum(H2.anti.imm.sd.dat$numerator)/
+  ((sum(H2.anti.imm.sd.dat$n)-nrow(H2.anti.imm.sd.dat))))
+
+H2.anti.imm.sd
+
+H2.pro.env.sd.dat<-dat %>%
+  filter(all.parties.lvl2=="Pro-environment party") %>%
+  group_by(all.parties.lvl2,cntry) %>%
+  summarize(pro.ref.mean=mean(refugees),
+            pro.ref.sd=sd(refugees),
+            n=n())
+H2.pro.env.sd.dat$numerator<-
+  (H2.pro.env.sd.dat$n-1)*H2.pro.env.sd.dat$pro.ref.sd^2
+
+H2.pro.env.sd<-sqrt(sum(H2.pro.env.sd.dat$numerator)/
+  ((sum(H2.pro.env.sd.dat$n)-nrow(H2.pro.env.sd.dat))))
+H2.pro.env.sd
+
+H2.pooled.sd<-sqrt(
+  ((nrow(H2.anti.imm.sd.dat)-1)*H2.anti.imm.sd^2+
+  (nrow(H2.pro.env.sd.dat)-1)*H2.pro.env.sd^2)/
+  (nrow(H2.anti.imm.sd.dat)+
+     nrow(H2.pro.env.sd.dat)-2))
+H2.pooled.sd  
+
+
+(H2.effect.size<-(H2.mod2.mmeans.tab[10,2]-
+  H2.mod2.mmeans.tab[1,2])/H2.pooled.sd)
+
+
+H2.other.sd.dat<-dat %>%
+  filter(all.parties.lvl2=="Other party") %>%
+  group_by(all.parties.lvl2,cntry) %>%
+  summarize(pro.ref.mean=mean(refugees),
+            pro.ref.sd=sd(refugees),
+            n=n())
+H2.other.sd.dat$numerator<-
+  (H2.other.sd.dat$n-1)*H2.other.sd.dat$pro.ref.sd^2
+
+H2.other.sd<-sqrt(sum(H2.other.sd.dat$numerator)/
+  ((sum(H2.other.sd.dat$n)-nrow(H2.other.sd.dat))))
+H2.other.sd
+
+H2.pooled.sd.other.env<-sqrt(
+  ((nrow(H2.other.sd.dat)-1)*H2.other.sd^2+
+  (nrow(H2.pro.env.sd.dat)-1)*H2.pro.env.sd^2)/
+  (nrow(H2.other.sd.dat)+
+     nrow(H2.pro.env.sd.dat)-2))
+H2.pooled.sd.other.env 
+
+(H2.effect.size.env.other<-(H2.mod2.mmeans.tab[10,2]-
+  H2.mod2.mmeans.tab[9,2])/H2.pooled.sd.other.env)
+
+H2.pooled.sd.other.imm<-sqrt(
+  ((nrow(H2.other.sd.dat)-1)*H2.other.sd^2+
+  (nrow(H2.anti.imm.sd.dat)-1)*H2.anti.imm.sd^2)/
+  (nrow(H2.other.sd.dat)+
+     nrow(H2.anti.imm.sd.dat)-2))
+H2.pooled.sd.other.imm 
+
+(H2.effect.size.imm.other<-(H2.mod2.mmeans.tab[9,2]-
+  H2.mod2.mmeans.tab[1,2])/H2.pooled.sd.other.imm)
+
+```
+
+
+
+\newpage
+
+
+### Model 3: Dummy-predictors at level-2 
+
+```{r message=FALSE}
+#did not vote left as reference
+
+H2.mod3<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                other.party.dummy+
+                dont.know.dummy+
+                 invalid.vote.dummy+
+                no.answer.dummy+
+                not.eligible.age.dummy+
+                 not.eligible.citizenship.dummy+
+                not.eligible.other.dummy+
+                anti.imm.party.dummy+
+                 pro.env.party.dummy
+                ,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+(FE.H2.mod3<-getFE(H2.mod3))
+(VC.H2.mod3<-getVC(H2.mod3))
+
+#this just confirms that the dummy and categorical
+#models are identical
+anova(H2.mod2,H2.mod3)
+
+```
+
+
+\newpage
+
+
+### Model 4: Dummy-predictors (anti-immigration and pro-environment) at level-2 allowed to vary between countries
+
+```{r message=FALSE}
+#did not vote left as reference
+
+H2.mod4<-lmer(refugees~(1|voting.group)+
+                (anti.imm.party.dummy+pro.env.party.dummy||cntry)+
+                age+gender+educ+resid+occup+
+                other.party.dummy+
+                dont.know.dummy+
+                 invalid.vote.dummy+
+                no.answer.dummy+
+                not.eligible.age.dummy+
+                 not.eligible.citizenship.dummy+
+                not.eligible.other.dummy+
+                anti.imm.party.dummy+
+                 pro.env.party.dummy
+                ,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+isSingular(H2.mod4)
+(FE.H2.mod4<-getFE(H2.mod4))
+(VC.H2.mod4<-getVC(H2.mod4))
+
+anova(H2.mod3,H2.mod4)
+
+```
+
+\newpage
+
+### Model 5: explained variance by the focus groups
+
+```{r}
+
+#leave the focus group dummies out
+
+H2.mod5<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                did.not.vote.dummy+
+                dont.know.dummy+
+                 invalid.vote.dummy+
+                no.answer.dummy+
+                not.eligible.age.dummy+
+                 not.eligible.citizenship.dummy+
+                not.eligible.other.dummy
+                ,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+(FE.H2.mod5<-getFE(H2.mod5))
+(VC.H2.mod5<-getVC(H2.mod5))
+
+#see how much variance was explained at level-2
+
+##lvl 2: voting group
+
+(H2.total.eff<-(VC.H2.mod1[VC.H2.mod1$grp=="voting.group","est_SD2"]-
+     VC.H2.mod5[VC.H2.mod5$grp=="voting.group","est_SD2"])/
+  VC.H2.mod1[VC.H2.mod1$grp=="voting.group","est_SD2"])
+
+#see how much residual variance was explained at level-2 by anti-immigrants
+
+H2.mod6<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                did.not.vote.dummy+
+                dont.know.dummy+
+                 invalid.vote.dummy+
+                no.answer.dummy+
+                not.eligible.age.dummy+
+                 not.eligible.citizenship.dummy+
+                not.eligible.other.dummy+
+                anti.imm.party.dummy
+                ,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+(FE.H2.mod6<-getFE(H2.mod6))
+(VC.H2.mod6<-getVC(H2.mod6))
+
+(H2.total.eff<-(VC.H2.mod5[VC.H2.mod5$grp=="voting.group","est_SD2"]-
+     VC.H2.mod6[VC.H2.mod6$grp=="voting.group","est_SD2"])/
+  VC.H2.mod5[VC.H2.mod5$grp=="voting.group","est_SD2"])
+
+#see how much residual variance was explained at level-2 by pro-environments
+
+H2.mod7<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                did.not.vote.dummy+
+                dont.know.dummy+
+                 invalid.vote.dummy+
+                no.answer.dummy+
+                not.eligible.age.dummy+
+                 not.eligible.citizenship.dummy+
+                not.eligible.other.dummy+
+                pro.env.party.dummy
+                ,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+(FE.H2.mod7<-getFE(H2.mod7))
+(VC.H2.mod7<-getVC(H2.mod7))
+
+(H2.total.eff<-(VC.H2.mod5[VC.H2.mod5$grp=="voting.group","est_SD2"]-
+     VC.H2.mod7[VC.H2.mod7$grp=="voting.group","est_SD2"])/
+  VC.H2.mod5[VC.H2.mod5$grp=="voting.group","est_SD2"])
+
+#see how much residual variance was explained at level-2 by both focus groups
+
+H2.mod8<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                did.not.vote.dummy+
+                dont.know.dummy+
+                 invalid.vote.dummy+
+                no.answer.dummy+
+                not.eligible.age.dummy+
+                 not.eligible.citizenship.dummy+
+                not.eligible.other.dummy+
+                anti.imm.party.dummy+
+                pro.env.party.dummy
+                ,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+(FE.H2.mod8<-getFE(H2.mod8))
+(VC.H2.mod8<-getVC(H2.mod8))
+
+(H2.total.eff<-(VC.H2.mod5[VC.H2.mod5$grp=="voting.group","est_SD2"]-
+     VC.H2.mod8[VC.H2.mod8$grp=="voting.group","est_SD2"])/
+  VC.H2.mod5[VC.H2.mod5$grp=="voting.group","est_SD2"])
+
+#how much variance was left at level-2
+1-H2.total.eff
+
+```
+

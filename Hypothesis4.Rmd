@@ -3,12 +3,8 @@ title: "Hypothesis 4"
 output: html_document
 ---
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-
-## Hypothesis 4: The strength of the association between environment and refugee attitudes is stronger among those who voted for pro-environment or anti-immigration parties in the previous national elections
+# Hypothesis 4: The strength of the association between environment and refugee attitudes is stronger among those who voted for pro-environment or anti-immigration parties in the previous national elections
 
 ### Model 1: without interactions (only main effects, combine H1 and H2 final models in terms of predictors)
 

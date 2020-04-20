@@ -1,14 +1,15 @@
 ---
-title: "Hypothesis 2"
-output: html_document
+title: "Hypothesis 2: Those who voted for pro-environment parties will report higher pro-refugee attitudes than those who voted for anti-immigration parties"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
 ---
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+\newpage
 
-
-## Hypothesis 2: Those who voted for pro-environment parties will report higher pro-refugee attitudes than those who voted for anti-immigration parties
+# Hypothesis 2: Those who voted for pro-environment parties will report higher pro-refugee attitudes than those who voted for anti-immigration parties
 
 ### Model 1: random intercepts + covariates (same as in H1)
 

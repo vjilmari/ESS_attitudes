@@ -3,12 +3,7 @@ title: "Hypothesis 5"
 output: html_document
 ---
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-## Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
+# Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
 
 ### Model 1: without interactions (only main effects)
 

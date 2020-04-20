@@ -1,14 +1,13 @@
 ---
-title: "Hypothesis 1"
-output: html_document
+title: "Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
 ---
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-## Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes
+# Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes
 
 ### Model 0: Intercepts only
 
@@ -297,7 +296,7 @@ write.csv2(voting.group.slopes.dat,"associations_within_voting_groups.csv")
 
 \newpage
 
-## Alternative (exploratory) approach for Hypothesis 1 with Environment attitudes as dependent variable, and immigrant attitudes as independet
+## Alternative (exploratory) approach for Hypothesis 1 with Environment attitudes as dependent variable, and immigrant attitudes as independent
 
 ### Model 0: Intercepts only
 

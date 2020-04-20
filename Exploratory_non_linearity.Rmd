@@ -1,0 +1,790 @@
+---
+title: "Exploratory non-linearity"
+output: html_document
+---
+
+
+# Exploratory analysis: Is the association linear?
+
+## Data re-preparations
+
+```{r}
+
+##Remove two of the smallest voting groups
+
+Rdat<-dat %>%
+  filter(all.parties.lvl2!="Invalid vote" & all.parties.lvl2!="No answer")
+```
+
+## Model 1 (H1 selected model without random effect correlations)
+
+```{r}
+EX9RR.NCmod1<-lmer(refugees~
+                     (environ.lvl1||voting.group)+
+                     (environ.lvl1||cntry)+
+                     age+gender+educ+resid+occup+
+                     environ.lvl1,data=Rdat,REML=F,
+                   control=lmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e8)))
+
+isSingular(EX9RR.NCmod1)
+(VC.EX9RR.NCmod1<-getVC(EX9RR.NCmod1))
+getFE(EX9RR.NCmod1)
+```
+
+\newpage
+
+## Model 2 (add squared fixed effect)
+
+```{r}
+EX9RR.NCmod2<-lmer(refugees~(environ.lvl1||voting.group)+
+                     (environ.lvl1||cntry)+
+                     age+gender+educ+resid+occup+
+                     environ.lvl1+
+                     I(environ.lvl1^2),data=Rdat,REML=F,
+                   control=lmerControl(optimizer="bobyqa",
+                                       optCtrl=list(maxfun=2e8)))
+
+
+anova(EX9RR.NCmod1,EX9RR.NCmod2)
+isSingular(EX9RR.NCmod2)
+(VC.EX9RR.NCmod2<-getVC(EX9RR.NCmod2))
+getFE(EX9RR.NCmod2)
+```
+
+\newpage
+
+## Model 3 (add fixed cubic effect)
+
+```{r}
+EX9RR.NCmod3<-lmer(refugees~(environ.lvl1||voting.group)+
+                     (environ.lvl1||cntry)+
+                     age+gender+educ+resid+occup+
+                     environ.lvl1+
+            I(environ.lvl1^2)+
+              I(environ.lvl1^3),
+            data=Rdat,REML=F,
+                   control=lmerControl(optimizer="bobyqa",
+                                       optCtrl=list(maxfun=2e8)))
+
+isSingular(EX9RR.NCmod3)
+#test for cubic term only
+anova(EX9RR.NCmod2,EX9RR.NCmod3)
+#test for both non-linear terms
+anova(EX9RR.NCmod1,EX9RR.NCmod3)
+
+(VC.EX9RR.NCmod3<-getVC(EX9RR.NCmod3))
+getFE(EX9RR.NCmod3)
+```
+
+## Model 4 (add random effects for non-linear terms by country)
+
+```{r}
+EX9RR.NCmod4<-lmer(refugees~(environ.lvl1||voting.group)+
+                (environ.lvl1+
+                   I(environ.lvl1^2)+
+                   I(environ.lvl1^3)||cntry)+
+                     age+gender+educ+resid+occup+
+                     environ.lvl1+
+                  I(environ.lvl1^2)+
+                  I(environ.lvl1^3),
+                data=Rdat,REML=F,
+                   control=lmerControl(optimizer="bobyqa",
+                                       optCtrl=list(maxfun=2e8)))
+
+isSingular(EX9RR.NCmod4)
+anova(EX9RR.NCmod3,EX9RR.NCmod4)
+(VC.EX9RR.NCmod4<-getVC(EX9RR.NCmod4))
+getFE(EX9RR.NCmod4)
+```
+## Model 5 (add random effects for non-linear terms by voting group)
+
+```{r}
+EX9RR.NCmod6<-lmer(refugees~
+                     (environ.lvl1+
+                        I(environ.lvl1^2)+
+                        I(environ.lvl1^3)||voting.group)+
+                     (environ.lvl1+
+                        I(environ.lvl1^2)+
+                        I(environ.lvl1^3)||cntry)+
+                     age+gender+educ+resid+occup+
+                     environ.lvl1+
+                     I(environ.lvl1^2)+
+                     I(environ.lvl1^3),data=Rdat,REML=F,
+                   control=lmerControl(optimizer="bobyqa",
+                                       optCtrl=list(maxfun=2e8)))
+
+isSingular(EX9RR.NCmod6)
+#test against fixed effects only
+anova(EX9RR.NCmod3,EX9RR.NCmod6)
+#test against random effects by country
+anova(EX9RR.NCmod4,EX9RR.NCmod6)
+(VC.EX9RR.NCmod6<-getVC(EX9RR.NCmod6))
+getFE(EX9RR.NCmod6)
+```
+
+\newpage
+
+### Marginal effects for non-linearity at level-1 
+
+```{r message=FALSE, warning=FALSE}
+EX9RR.NCmod6.trends<-
+  emtrends(EX9RR.NCmod6,
+           specs = c("environ.lvl1"),
+           var=c("environ.lvl1"),
+           at=list(environ.lvl1=
+                     c(mean(Rdat$environ.lvl1)-1*sd(Rdat$environ.lvl1),
+                       mean(Rdat$environ.lvl1)-0*sd(Rdat$environ.lvl1),
+                       mean(Rdat$environ.lvl1)+1*sd(Rdat$environ.lvl1))))
+
+(EX9RR.NCmod6.trends.tab<-data.frame(EX9RR.NCmod6.trends))
+
+
+EX9RR.NCmod6.trends.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod6.trends.tab$environ.lvl1.trend/
+                   EX9RR.NCmod6.trends.tab$SE)))
+EX9RR.NCmod6.trends.tab$adj.p<-
+  p.adjust(EX9RR.NCmod6.trends.tab$p,method="holm")
+
+EX9RR.NCmod6.trends.tab<-
+  cbind(group=EX9RR.NCmod6.trends.tab[,1],
+        round(EX9RR.NCmod6.trends.tab[,c(2,3)],2),
+        round(EX9RR.NCmod6.trends.tab[,c(7,8)],4),
+        round(EX9RR.NCmod6.trends.tab[,c(5,6)],2))
+EX9RR.NCmod6.trends.tab
+
+write.csv2(EX9RR.NCmod6.trends.tab,"EX9RR.NCmod6.trends.tab.csv")
+```
+
+\newpage
+
+## Model 6 (include voting group main effects at level-2)
+
+```{r}
+EX9RR.NCmod7<-lmer(refugees~
+                     (environ.lvl1+
+                        I(environ.lvl1^2)+
+                        I(environ.lvl1^3)||voting.group)+
+                     (environ.lvl1+
+                        I(environ.lvl1^2)+
+                        I(environ.lvl1^3)||cntry)+
+                     age+gender+educ+resid+occup+
+                     environ.lvl1+
+                     I(environ.lvl1^2)+
+                     I(environ.lvl1^3)+
+                     all.parties.lvl2,data=Rdat,REML=F,
+                   control=lmerControl(optimizer="bobyqa",
+                                       optCtrl=list(maxfun=2e8)))
+isSingular(EX9RR.NCmod7)
+anova(EX9RR.NCmod6,EX9RR.NCmod7)
+getFE(EX9RR.NCmod7)
+getVC(EX9RR.NCmod7)
+```
+
+## Model 7 (voting group interactions with linear term)
+
+```{r}
+
+EX9RR.NCmod8<-lmer(refugees~
+                     (environ.lvl1+
+                        I(environ.lvl1^2)+
+                        I(environ.lvl1^3)||voting.group)+
+                     (environ.lvl1+
+                        I(environ.lvl1^2)+
+                        I(environ.lvl1^3)||cntry)+
+                     age+gender+educ+resid+occup+
+                     environ.lvl1+
+                     I(environ.lvl1^2)+
+                     I(environ.lvl1^3)+
+                     all.parties.lvl2+
+                     all.parties.lvl2:environ.lvl1,
+                   data=Rdat,REML=F,
+                   control=lmerControl(optimizer="bobyqa",
+                                       optCtrl=list(maxfun=2e8)))
+isSingular(EX9RR.NCmod8)
+anova(EX9RR.NCmod7,EX9RR.NCmod8)
+getFE(EX9RR.NCmod8)
+getVC(EX9RR.NCmod8)
+```
+
+\newpage
+
+## Model 8 (interactions with non-linear terms)
+
+```{r}
+EX9RR.NCmod10<-lmer(refugees~
+                      (environ.lvl1+
+                         I(environ.lvl1^2)+
+                         I(environ.lvl1^3)||voting.group)+
+                      (environ.lvl1+
+                         I(environ.lvl1^2)+
+                         I(environ.lvl1^3)||cntry)+
+                      age+gender+educ+resid+occup+
+                      environ.lvl1+
+                      I(environ.lvl1^2)+
+                      I(environ.lvl1^3)+
+                      all.parties.lvl2+
+                      all.parties.lvl2:environ.lvl1+
+                      all.parties.lvl2:I(environ.lvl1^2)+
+                      all.parties.lvl2:I(environ.lvl1^3),
+                    data=Rdat,REML=F,
+                    control=lmerControl(optimizer="bobyqa",
+                                        optCtrl=list(maxfun=2e8)))
+
+#test against linear interaction by voting groups
+anova(EX9RR.NCmod8,EX9RR.NCmod10)
+
+getFE(EX9RR.NCmod10)
+getVC(EX9RR.NCmod10)
+```
+
+\newpage
+
+### Marginal trends for each voting group
+
+#### Linear coefficients
+
+```{r message=FALSE, warning=FALSE}
+
+EX9RR.NCmod10.linear<-
+  emtrends(EX9RR.NCmod10,specs = c("all.parties.lvl2"),var=c("environ.lvl1"))
+(EX9RR.NCmod10.linear.tab<-data.frame(EX9RR.NCmod10.linear))
+
+
+EX9RR.NCmod10.linear.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.linear.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.linear.tab$SE)))
+EX9RR.NCmod10.linear.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.linear.tab$p,method="holm")
+
+EX9RR.NCmod10.linear.tab<-
+  cbind(group=EX9RR.NCmod10.linear.tab[,1],
+        round(EX9RR.NCmod10.linear.tab[,c(2,3)],2),
+        round(EX9RR.NCmod10.linear.tab[,c(7,8)],4),
+        round(EX9RR.NCmod10.linear.tab[,c(5,6)],2))
+EX9RR.NCmod10.linear.tab
+
+write.csv2(EX9RR.NCmod10.linear.tab,"EX9RR.NCmod10.linear.tab.csv")
+
+#contrast for three voting groups
+(EX9RR.more.contrasts<-data.frame(pairs(EX9RR.NCmod10.linear, 
+                                        exclude=c(2:6), by = NULL,adjust=c("none"),reverse=T)))
+
+
+```
+
+### Quadratic and cubic coefficients
+
+* Non-linear variables must be manually recoded to new variables for extracting marginal effects
+
+```{r}
+#recoding
+Rdat$environ.lvl1.sq<-Rdat$environ.lvl1^2
+Rdat$environ.lvl1.cu<-Rdat$environ.lvl1^3
+
+#refitting the model
+EX9RR.NCmod10.ma<-lmer(refugees~
+                         (environ.lvl1+
+                            environ.lvl1.sq+
+                            environ.lvl1.cu||voting.group)+
+                         (environ.lvl1+
+                            environ.lvl1.sq+
+                            environ.lvl1.cu||cntry)+
+                         age+gender+educ+resid+occup+
+                         environ.lvl1+
+                         environ.lvl1.sq+
+                         environ.lvl1.cu+
+                         all.parties.lvl2+
+                         all.parties.lvl2:environ.lvl1+
+                         all.parties.lvl2:environ.lvl1.sq+
+                       all.parties.lvl2:environ.lvl1.cu,
+                       data=Rdat,REML=F,
+                       control=lmerControl(optimizer="bobyqa",
+                                           optCtrl=list(maxfun=2e8)))
+isSingular(EX9RR.NCmod10.ma)
+#check if identical
+anova(EX9RR.NCmod10,EX9RR.NCmod10.ma)
+#
+anova(EX9RR.NCmod8,EX9RR.NCmod10.ma)
+
+getFE(EX9RR.NCmod10.ma)
+getVC(EX9RR.NCmod10.ma)
+```
+
+#### Marginal quadratic effects
+
+```{r message=FALSE, warning=FALSE}
+
+EX9RR.NCmod10.quadratic<-
+  emtrends(EX9RR.NCmod10.ma,specs = c("all.parties.lvl2"),var=c("environ.lvl1.sq"))
+(EX9RR.NCmod10.quadratic.tab<-data.frame(EX9RR.NCmod10.quadratic))
+
+
+EX9RR.NCmod10.quadratic.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.quadratic.tab$environ.lvl1.sq.trend/
+                   EX9RR.NCmod10.quadratic.tab$SE)))
+EX9RR.NCmod10.quadratic.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.quadratic.tab$p,method="holm")
+
+EX9RR.NCmod10.quadratic.tab<-
+  cbind(group=EX9RR.NCmod10.quadratic.tab[,1],
+        round(EX9RR.NCmod10.quadratic.tab[,c(2,3)],2),
+        round(EX9RR.NCmod10.quadratic.tab[,c(7,8)],4),
+        round(EX9RR.NCmod10.quadratic.tab[,c(5,6)],2))
+EX9RR.NCmod10.quadratic.tab
+
+write.csv2(EX9RR.NCmod10.quadratic.tab,"EX9RR.NCmod10.quadratic.tab.csv")
+
+#contrast for three voting groups
+(EX9RR.more.contrasts<-data.frame(pairs(EX9RR.NCmod10.quadratic, 
+                                        exclude=c(2:6), by = NULL,adjust=c("none"),reverse=T)))
+(EX9RR.more.contrasts<-data.frame(pairs(EX9RR.NCmod10.quadratic, "del.eff",
+                                        exclude=c(2:6), by = NULL,adjust=c("none"),reverse=T)))
+```
+
+\newpage
+
+#### Marginal cubic effects
+
+```{r message=FALSE, warning=FALSE}
+
+EX9RR.NCmod10.cubic<-
+  emtrends(EX9RR.NCmod10.ma,specs = c("all.parties.lvl2"),var=c("environ.lvl1.cu"))
+(EX9RR.NCmod10.cubic.tab<-data.frame(EX9RR.NCmod10.cubic))
+
+
+EX9RR.NCmod10.cubic.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.cubic.tab$environ.lvl1.cu.trend/
+                   EX9RR.NCmod10.cubic.tab$SE)))
+EX9RR.NCmod10.cubic.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.cubic.tab$p,method="holm")
+
+EX9RR.NCmod10.cubic.tab<-
+  cbind(group=EX9RR.NCmod10.cubic.tab[,1],
+        round(EX9RR.NCmod10.cubic.tab[,c(2,3)],2),
+        round(EX9RR.NCmod10.cubic.tab[,c(7,8)],4),
+        round(EX9RR.NCmod10.cubic.tab[,c(5,6)],2))
+EX9RR.NCmod10.cubic.tab
+
+write.csv2(EX9RR.NCmod10.cubic.tab,"EX9RR.NCmod10.cubic.tab.csv")
+
+#contrast for three voting groups
+(EX9RR.more.contrasts<-data.frame(pairs(EX9RR.NCmod10.cubic, 
+                                        exclude=c(2:6), by = NULL,adjust=c("none"),reverse=T)))
+(EX9RR.more.contrasts<-data.frame(pairs(EX9RR.NCmod10.cubic, "del.eff",
+                                        exclude=c(2:6), by = NULL,adjust=c("none"),reverse=T)))
+
+```
+
+\newpage
+
+### Simple slopes for each voting group at -1SD, mean, and +1SD (grand mean used to enhance comparisons between voting groups)
+
+* Because the location of points on grand-mean vary for group-means, the locations of grand mean points for each voting group are calculated separately
+
+#### This script would produce the slopes for group means (not interpreted in the main text)
+
+```{r message=FALSE, warning=FALSE}
+EX9RR.NCmod10.slopes<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                               at=list(environ.lvl1=c(mean(dat$environ.lvl1)-sd(dat$environ.lvl1),
+                                                      mean(dat$environ.lvl1)-0*sd(dat$environ.lvl1),
+                                                      mean(dat$environ.lvl1)+sd(dat$environ.lvl1))))
+(EX9RR.NCmod10.slopes.tab<-data.frame(EX9RR.NCmod10.slopes))
+
+
+EX9RR.NCmod10.slopes.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.tab$SE)))
+EX9RR.NCmod10.slopes.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.tab[,1],group=EX9RR.NCmod10.slopes.tab[,2],
+        round(EX9RR.NCmod10.slopes.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.tab
+
+
+write.csv2(EX9RR.NCmod10.slopes.tab,"EX9RR.NCmod10.slopes.tab.csv")
+```
+
+\newpage
+
+#### Locating the grand-mean points for group-means
+
+```{r}
+
+all.parties.lvl2.means<-Rdat %>%
+  group_by(all.parties.lvl2) %>%
+  summarize(env.lvl2.mean=mean(environ.cntrymc),
+            env.lvl1.sd=sd(environ.lvl1),
+            ref.lvl2.mean=mean(refugees.cntrymc),
+            ref.lvl1.sd=sd(refugees.lvl1),
+            n=n())
+
+all.parties.lvl2.means<-data.frame(all.parties.lvl2.means)
+
+all.parties.lvl2.means$env.num<-
+  (all.parties.lvl2.means$n-1)*
+  (all.parties.lvl2.means$env.lvl1.sd^2)
+
+all.parties.lvl2.means$env.pooled.sd<-
+  sqrt(sum(all.parties.lvl2.means$env.num)/
+         (sum(all.parties.lvl2.means$n)-
+            nrow(all.parties.lvl2.means)))
+
+all.parties.lvl2.means$ref.num<-
+  (all.parties.lvl2.means$n-1)*
+  (all.parties.lvl2.means$ref.lvl1.sd^2)
+
+all.parties.lvl2.means$ref.pooled.sd<-
+  sqrt(sum(all.parties.lvl2.means$ref.num)/
+         (sum(all.parties.lvl2.means$n)-
+            nrow(all.parties.lvl2.means)))
+all.parties.lvl2.means
+
+```
+
+##### group.1: Anti-immigration party
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.1<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[1]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[1]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[1]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[1]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[1]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[1]))
+
+x.points.group.1
+
+EX9RR.NCmod10.slopes.group.1<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.1)))
+EX9RR.NCmod10.slopes.group.1.tab<-data.frame(EX9RR.NCmod10.slopes.group.1)
+(EX9RR.NCmod10.slopes.group.1.tab<-
+    EX9RR.NCmod10.slopes.group.1.tab[EX9RR.NCmod10.slopes.group.1.tab$all.parties.lvl2=="Anti-immigration party",])
+
+EX9RR.NCmod10.slopes.group.1.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.1.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.1.tab$SE)))
+EX9RR.NCmod10.slopes.group.1.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.1.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.1.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.1.tab[,1],group=EX9RR.NCmod10.slopes.group.1.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.1.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.1.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.1.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.1.tab
+```
+
+\newpage
+
+##### group.2: Did not vote -group
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.2<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[2]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[2]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[2]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[2]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[2]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[2]))
+
+x.points.group.2
+
+EX9RR.NCmod10.slopes.group.2<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.2)))
+EX9RR.NCmod10.slopes.group.2.tab<-data.frame(EX9RR.NCmod10.slopes.group.2)
+(EX9RR.NCmod10.slopes.group.2.tab<-
+    EX9RR.NCmod10.slopes.group.2.tab[EX9RR.NCmod10.slopes.group.2.tab$all.parties.lvl2=="Did not vote",])
+
+EX9RR.NCmod10.slopes.group.2.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.2.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.2.tab$SE)))
+EX9RR.NCmod10.slopes.group.2.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.2.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.2.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.2.tab[,1],group=EX9RR.NCmod10.slopes.group.2.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.2.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.2.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.2.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.2.tab
+```
+
+\newpage
+
+##### group.3: Don't know -group
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.3<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[3]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[3]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[3]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[3]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[3]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[3]))
+
+x.points.group.3
+
+EX9RR.NCmod10.slopes.group.3<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.3)))
+EX9RR.NCmod10.slopes.group.3.tab<-data.frame(EX9RR.NCmod10.slopes.group.3)
+(EX9RR.NCmod10.slopes.group.3.tab<-
+    EX9RR.NCmod10.slopes.group.3.tab[EX9RR.NCmod10.slopes.group.3.tab$all.parties.lvl2=="Don't know",])
+
+EX9RR.NCmod10.slopes.group.3.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.3.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.3.tab$SE)))
+EX9RR.NCmod10.slopes.group.3.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.3.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.3.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.3.tab[,1],group=EX9RR.NCmod10.slopes.group.3.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.3.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.3.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.3.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.3.tab
+```
+
+\newpage
+
+##### group.4: Not eligible Age -group
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.4<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[4]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[4]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[4]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[4]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[4]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[4]))
+
+x.points.group.4
+
+EX9RR.NCmod10.slopes.group.4<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.4)))
+EX9RR.NCmod10.slopes.group.4.tab<-data.frame(EX9RR.NCmod10.slopes.group.4)
+(EX9RR.NCmod10.slopes.group.4.tab<-
+    EX9RR.NCmod10.slopes.group.4.tab[EX9RR.NCmod10.slopes.group.4.tab$all.parties.lvl2=="NE age",])
+
+EX9RR.NCmod10.slopes.group.4.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.4.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.4.tab$SE)))
+EX9RR.NCmod10.slopes.group.4.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.4.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.4.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.4.tab[,1],group=EX9RR.NCmod10.slopes.group.4.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.4.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.4.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.4.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.4.tab
+```
+
+\newpage
+
+##### group.5: Not eligible citizenship -group
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.5<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[5]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[5]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[5]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[5]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[5]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[5]))
+
+x.points.group.5
+
+EX9RR.NCmod10.slopes.group.5<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.5)))
+EX9RR.NCmod10.slopes.group.5.tab<-data.frame(EX9RR.NCmod10.slopes.group.5)
+(EX9RR.NCmod10.slopes.group.5.tab<-
+    EX9RR.NCmod10.slopes.group.5.tab[EX9RR.NCmod10.slopes.group.5.tab$all.parties.lvl2=="NE citizen",])
+
+EX9RR.NCmod10.slopes.group.5.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.5.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.5.tab$SE)))
+EX9RR.NCmod10.slopes.group.5.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.5.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.5.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.5.tab[,1],group=EX9RR.NCmod10.slopes.group.5.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.5.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.5.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.5.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.5.tab
+```
+
+\newpage
+
+##### group.6: Not eligible Other -group
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.6<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[6]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[6]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[6]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[6]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[6]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[6]))
+
+x.points.group.6
+
+EX9RR.NCmod10.slopes.group.6<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.6)))
+EX9RR.NCmod10.slopes.group.6.tab<-data.frame(EX9RR.NCmod10.slopes.group.6)
+(EX9RR.NCmod10.slopes.group.6.tab<-
+    EX9RR.NCmod10.slopes.group.6.tab[EX9RR.NCmod10.slopes.group.6.tab$all.parties.lvl2=="NE other",])
+
+EX9RR.NCmod10.slopes.group.6.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.6.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.6.tab$SE)))
+EX9RR.NCmod10.slopes.group.6.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.6.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.6.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.6.tab[,1],group=EX9RR.NCmod10.slopes.group.6.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.6.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.6.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.6.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.6.tab
+```
+
+##### group.7: Other party -group
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.7<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[7]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[7]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[7]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[7]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[7]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[7]))
+
+x.points.group.7
+
+EX9RR.NCmod10.slopes.group.7<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.7)))
+EX9RR.NCmod10.slopes.group.7.tab<-data.frame(EX9RR.NCmod10.slopes.group.7)
+(EX9RR.NCmod10.slopes.group.7.tab<-
+    EX9RR.NCmod10.slopes.group.7.tab[EX9RR.NCmod10.slopes.group.7.tab$all.parties.lvl2=="Other party",])
+
+EX9RR.NCmod10.slopes.group.7.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.7.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.7.tab$SE)))
+EX9RR.NCmod10.slopes.group.7.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.7.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.7.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.7.tab[,1],group=EX9RR.NCmod10.slopes.group.7.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.7.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.7.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.7.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.7.tab
+```
+
+\newpage
+
+##### group.8: Pro-environment party -group
+
+```{r message=FALSE, warning=FALSE}
+
+x.points.group.8<-
+  c(mean(dat$environ.lvl1)-1*all.parties.lvl2.means$env.pooled.sd[8]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[8]),
+    mean(dat$environ.lvl1)-0*all.parties.lvl2.means$env.pooled.sd[8]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[8]),
+    mean(dat$environ.lvl1)+1*all.parties.lvl2.means$env.pooled.sd[8]+
+      (mean(dat$environ.lvl1)-all.parties.lvl2.means$env.lvl2.mean[8]))
+
+x.points.group.8
+
+EX9RR.NCmod10.slopes.group.8<-emtrends(EX9RR.NCmod10,specs = c("environ.lvl1","all.parties.lvl2"),var="environ.lvl1",
+                                       at=list(environ.lvl1=c(x.points.group.8)))
+EX9RR.NCmod10.slopes.group.8.tab<-data.frame(EX9RR.NCmod10.slopes.group.8)
+(EX9RR.NCmod10.slopes.group.8.tab<-
+    EX9RR.NCmod10.slopes.group.8.tab[EX9RR.NCmod10.slopes.group.8.tab$all.parties.lvl2=="Pro-environment party",])
+
+EX9RR.NCmod10.slopes.group.8.tab$p<-
+  2*(1-pnorm(abs(EX9RR.NCmod10.slopes.group.8.tab$environ.lvl1.trend/
+                   EX9RR.NCmod10.slopes.group.8.tab$SE)))
+EX9RR.NCmod10.slopes.group.8.tab$adj.p<-
+  p.adjust(EX9RR.NCmod10.slopes.group.8.tab$p,method="holm")
+
+EX9RR.NCmod10.slopes.group.8.tab<-
+  cbind(env_point=EX9RR.NCmod10.slopes.group.8.tab[,1],group=EX9RR.NCmod10.slopes.group.8.tab[,2],
+        round(EX9RR.NCmod10.slopes.group.8.tab[,c(3,4)],2),
+        round(EX9RR.NCmod10.slopes.group.8.tab[,c(8,9)],4),
+        round(EX9RR.NCmod10.slopes.group.8.tab[,c(6,7)],2))
+EX9RR.NCmod10.slopes.group.8.tab
+```
+
+### Plotting the effects
+
+#### Make a separate long format data file for the focal groups + young non-voters
+
+```{r}
+EX9.plot.dat<-Rdat %>%
+  filter(anti.imm.party.dummy==1 |
+           pro.env.party.dummy==1 |
+           other.party.dummy==1 |
+           not.eligible.age.dummy==1)
+
+#rename the groups
+EX9.plot.dat$party<-ifelse(EX9.plot.dat$anti.imm.party.dummy==1,"Anti-immigration voters",
+                           ifelse(EX9.plot.dat$pro.env.party.dummy==1,"Pro-environment voters",
+                                  ifelse(EX9.plot.dat$other.party.dummy==1,"Other party voters",
+                                         ifelse(EX9.plot.dat$not.eligible.age.dummy==1,"Not eligible to vote: Age",NA))))
+```
+
+\newpage
+
+#### Plot the curves
+
+```{r}
+
+non.lin.plot<-
+  ggplot(data=EX9.plot.dat,aes(x=environ.gmc,y=refugees))+
+  geom_smooth(method="lm",
+              se=T,
+              formula=y ~ poly(x, 3),
+              size=2,color="black")+
+  geom_smooth(method="lm",
+              se=F,
+              formula=y ~ x,
+              size=1,
+              color="red",linetype="dashed")+
+  xlab("Attitudes towards the Environment")+
+  ylab("Attitudes towards Refugees")+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        plot.title = element_text(size = 16, face = "bold"),
+        legend.title=element_text(size=14), 
+        legend.text=element_text(size=14),
+        panel.background = element_blank(),
+        panel.grid.major = element_line(size = 0.25,
+                                        linetype = 'dotted',
+                                        colour = "black"))+
+  coord_cartesian(xlim=c(-2,2))+
+  facet_wrap(~party,ncol=2)+
+  theme(strip.text.x = element_text(size = 12,face="bold"),
+        strip.background = element_blank())
+
+non.lin.plot
+
+ggsave(plot = non.lin.plot,
+       filename="non.lin.plot.png",device = "png",
+       units = "cm",width=12,height=18,dpi = 600)
+
+```
+

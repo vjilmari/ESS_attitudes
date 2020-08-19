@@ -337,6 +337,114 @@ dat$engagement.lvl3<-dat$engagement.cntry
 
 \newpage
 
+#### Centering Political Interest Item (for exploratory analysis)
+
+```{r}
+#rename the variable (this will replace the previous item with same name)
+dat$polintr<-dat$polintr.R
+
+#descriptive statistics
+psych::describe(dat$polintr,fast=T)
+
+#grand mean center
+dat$polintr.gmc<-dat$polintr-mean(dat$polintr,na.rm=T)
+
+#obtain dataframe with country means and add to data
+
+polintr.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(polintr.cntry=mean(polintr.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polintr.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$polintr.cntrymc<-dat$polintr.gmc-dat$polintr.cntry
+
+#obtain dataframe with voting group means and add to data
+
+polintr.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(polintr.voting.group=mean(polintr.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polintr.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$polintr.vgmc<-dat$polintr.cntrymc-dat$polintr.voting.group
+
+#describe the centered variable
+
+describe(dat$polintr.vgmc,fast=T)
+
+#rename as lvl1, lvl2, and lvl3
+
+dat$polintr.lvl1<-dat$polintr.vgmc
+dat$polintr.lvl2<-dat$polintr.voting.group
+dat$polintr.lvl3<-dat$polintr.cntry
+```
+
+
+\newpage
+
+#### Centering "Time used for consuming political media" (for exploratory analysis)
+
+```{r}
+
+#rename the variable
+dat$polnews<-dat$nwspol.4
+
+#descriptive statistics
+psych::describe(dat$polnews,fast=T)
+
+#grand mean center
+dat$polnews.gmc<-dat$polnews-mean(dat$polnews,na.rm=T)
+
+#obtain dataframe with country means and add to data
+
+polnews.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(polnews.cntry=mean(polnews.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polnews.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$polnews.cntrymc<-dat$polnews.gmc-dat$polnews.cntry
+
+#obtain dataframe with voting group means and add to data
+
+polnews.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(polnews.voting.group=mean(polnews.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polnews.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$polnews.vgmc<-dat$polnews.cntrymc-dat$polnews.voting.group
+
+#describe the centered variable
+
+describe(dat$polnews.vgmc,fast=T)
+
+#rename as lvl1, lvl2, and lvl3
+
+dat$polnews.lvl1<-dat$polnews.vgmc
+dat$polnews.lvl2<-dat$polnews.voting.group
+dat$polnews.lvl3<-dat$polnews.cntry
+```
+
+\newpage
+
 #### Rename and grand mean center the Attitudes towards refugees (pro-refugee attitudes indicate high scores)
 
 ```{r}

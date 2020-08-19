@@ -71,3 +71,9 @@ options(width = 130)
 
 ```{r child = 'Exploratory_non_linearity.Rmd'}
 ```
+
+
+\newpage
+
+```{r child = 'Exploratory_Hypothesis5_Interest.Rmd'}
+```

@@ -1,0 +1,264 @@
+---
+title: "Exlopratory Hypothesis 5 with Political Interest"
+output: html_document
+---
+
+# Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
+
+Omit missing values on political interest item
+
+```{r}
+dat.H5.intr<-dat %>%
+  filter(!is.na(polintr))
+```
+
+### Model 1: without interactions (only main effects)
+
+```{r}
+H5.exp.intr.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+isSingular(H5.exp.intr.mod1)
+(FE.H5.exp.intr.mod1<-getFE(H5.exp.intr.mod1))
+(VC.H5.exp.intr.mod1<-getVC(H5.exp.intr.mod1))
+
+
+```
+
+\newpage
+
+### Model 2: Level-1 interaction between environmental attitudes and political polintr
+
+```{r}
+H5.exp.intr.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod2)
+anova(H5.exp.intr.mod1,H5.exp.intr.mod2)
+
+(FE.H5.exp.intr.mod2<-getFE(H5.exp.intr.mod2))
+(VC.H5.exp.intr.mod2<-getVC(H5.exp.intr.mod2))
+
+```
+
+\newpage
+
+### Model 3: Level-1 interaction between environmental attitudes and political polintr, allow polintr effect to vary between voting groups and countries
+
+```{r}
+H5.exp.intr.mod3<-lmer(refugees~(environ.lvl1+polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod3)
+anova(H5.exp.intr.mod2,H5.exp.intr.mod3)
+
+(FE.H5.exp.intr.mod3<-getFE(H5.exp.intr.mod3))
+(VC.H5.exp.intr.mod3<-getVC(H5.exp.intr.mod3))
+
+```
+
+
+\newpage
+
+### Model 4: Allow the level-1 interaction to vary between voting groups and countries
+
+```{r}
+H5.exp.intr.mod4<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+
+                   environ.lvl1:polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1+
+                   environ.lvl1:polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod4)
+anova(H5.exp.intr.mod3,H5.exp.intr.mod4)
+
+(FE.H5.exp.intr.mod4<-getFE(H5.exp.intr.mod4))
+(VC.H5.exp.intr.mod4<-getVC(H5.exp.intr.mod4))
+
+
+theta <- getME(H5.exp.intr.mod4,"theta")
+
+## diagonal elements are identifiable because they are fitted
+##  with a lower bound of zero ...
+diag.element <- getME(H5.exp.intr.mod4,"lower")==0
+any(theta[diag.element]<1e-5)
+round(theta,5)
+
+```
+
+\newpage
+
+### Model 5: Enter voting group variable and both two-way interactions with environment and polintr
+
+```{r}
+H5.exp.intr.mod5<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polintr.lvl1:all.parties.lvl2
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod5)
+anova(H5.exp.intr.mod4,H5.exp.intr.mod5)
+
+(FE.H5.exp.intr.mod5<-getFE(H5.exp.intr.mod5))
+(VC.H5.exp.intr.mod5<-getVC(H5.exp.intr.mod5))
+
+```
+
+\newpage
+
+#### Look among which voting group there is strongest association between polintr and refugee attitudes
+
+```{r}
+H5.exp.intr.mod5.trends<-emtrends(H5.exp.intr.mod5,specs = c("all.parties.lvl2"),var=c("polintr.lvl1"))
+(H5.exp.intr.mod5.trends.tab<-data.frame(H5.exp.intr.mod5.trends))
+
+
+H5.exp.intr.mod5.trends.tab$p<-
+  2*(1-pnorm(abs(H5.exp.intr.mod5.trends.tab$polintr.lvl1.trend/
+                   H5.exp.intr.mod5.trends.tab$SE)))
+H5.exp.intr.mod5.trends.tab$adj.p<-
+  p.adjust(H5.exp.intr.mod5.trends.tab$p,method="holm")
+
+H5.exp.intr.mod5.trends.tab<-
+  cbind(group=H5.exp.intr.mod5.trends.tab[,1],
+      round(H5.exp.intr.mod5.trends.tab[,c(2,3)],2),
+      round(H5.exp.intr.mod5.trends.tab[,c(7,8)],4),
+      round(H5.exp.intr.mod5.trends.tab[,c(5,6)],2))
+H5.exp.intr.mod5.trends.tab
+
+write.csv2(H5.exp.intr.mod5.trends.tab,"H5.exp.intr.mod5.trends.tab.csv")
+
+#contrast between anti-immigration and pro-environment
+(H5.exp.intr.contrast<-data.frame(pairs(H5.exp.intr.mod5.trends, exclude = c(2:9),reverse=T)))
+#contrast for all groups against mean of other groups
+contrast(H5.exp.intr.mod5.trends, "del.eff", by = NULL,adjust=c("none"))
+#contrast for three voting groups
+(H4.more.contrasts<-data.frame(pairs(H5.exp.intr.mod5.trends, 
+         exclude=c(2:8), by = NULL,adjust=c("none"),reverse=T)))
+
+```
+
+\newpage
+
+### Model 6: Enter three-way interaction voting group x polintr x environment attitudes
+
+```{r}
+H5.exp.intr.mod6<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polintr.lvl1:all.parties.lvl2+
+                environ.lvl1:polintr.lvl1:all.parties.lvl2
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod6)
+anova(H5.exp.intr.mod5,H5.exp.intr.mod6)
+
+(FE.H5.exp.intr.mod6<-getFE(H5.exp.intr.mod6))
+(VC.H5.exp.intr.mod6<-getVC(H5.exp.intr.mod6))
+
+```
+
+#### Refit with manually coded level-1 interaction
+
+```{r}
+dat.H5.intr$env.intr.int<-dat.H5.intr$environ.lvl1*dat.H5.intr$polintr.lvl1
+
+H5.exp.intr.mod6<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+env.intr.int|voting.group)+
+                (environ.lvl1+polintr.lvl1+env.intr.int|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                env.intr.int+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polintr.lvl1:all.parties.lvl2+
+                env.intr.int:all.parties.lvl2
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod6)
+anova(H5.exp.intr.mod5,H5.exp.intr.mod6)
+
+(FE.H5.exp.intr.mod6<-getFE(H5.exp.intr.mod6))
+(VC.H5.exp.intr.mod6<-getVC(H5.exp.intr.mod6))
+
+```
+
+
+#### Marginal effect for pro-environment and anti-immigration voters
+
+```{r message=FALSE}
+H5.exp.intr.mod6.trends<-emtrends(H5.exp.intr.mod6,specs = c("all.parties.lvl2"),var=c("env.intr.int"))
+(H5.exp.intr.mod6.trends.tab<-data.frame(H5.exp.intr.mod6.trends))
+
+
+H5.exp.intr.mod6.trends.tab$p<-
+  2*(1-pnorm(abs(H5.exp.intr.mod6.trends.tab$env.intr.int.trend/
+                   H5.exp.intr.mod6.trends.tab$SE)))
+H5.exp.intr.mod6.trends.tab$adj.p<-
+  p.adjust(H5.exp.intr.mod6.trends.tab$p,method="holm")
+
+H5.exp.intr.mod6.trends.tab<-
+  cbind(group=H5.exp.intr.mod6.trends.tab[,1],
+      round(H5.exp.intr.mod6.trends.tab[,c(2,3)],2),
+      round(H5.exp.intr.mod6.trends.tab[,c(7,8)],4),
+      round(H5.exp.intr.mod6.trends.tab[,c(5,6)],2))
+H5.exp.intr.mod6.trends.tab
+
+write.csv2(H5.exp.intr.mod6.trends.tab,"H5.exp.intr.mod6.trends.tab.csv")
+
+
+
+#contrast between anti-immigration and pro-environment
+(H5.exp.intr.contrast<-data.frame(pairs(H5.exp.intr.mod6.trends, exclude = c(2:9),reverse=T)))
+#contrast for all groups against mean of other groups
+contrast(H5.exp.intr.mod6.trends, "del.eff", by = NULL,adjust=c("holm"))
+#contrast for three voting groups
+(H5.exp.intr.more.contrasts<-data.frame(pairs(H5.exp.intr.mod6.trends, 
+         exclude=c(2:8), by = NULL,adjust=c("holm"),reverse=T)))
+
+
+
+```
+

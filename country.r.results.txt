@@ -1,0 +1,42 @@
+                  COR            95%-CI %W(fixed) %W(random)
+Austria        0.2229 [ 0.1801; 0.2648]       5.4        5.1
+Belgium        0.1463 [ 0.1001; 0.1919]       4.9        5.0
+Czech Republic 0.1659 [ 0.1237; 0.2075]       5.8        5.1
+Estonia        0.0472 [ 0.0025; 0.0917]       5.4        5.1
+Finland        0.2230 [ 0.1791; 0.2660]       5.1        5.1
+France         0.1974 [ 0.1549; 0.2392]       5.6        5.1
+Germany        0.2335 [ 0.1981; 0.2683]       7.8        5.3
+Great Britain  0.1816 [ 0.1372; 0.2252]       5.2        5.1
+Hungary        0.1737 [ 0.1213; 0.2252]       3.8        4.8
+Ireland        0.1739 [ 0.1363; 0.2110]       7.3        5.3
+Italy          0.1357 [ 0.0943; 0.1767]       6.1        5.2
+Lithuania      0.0951 [ 0.0486; 0.1412]       4.9        5.0
+Netherlands    0.1479 [ 0.0999; 0.1952]       4.5        5.0
+Norway         0.2278 [ 0.1797; 0.2748]       4.3        4.9
+Poland         0.0229 [-0.0279; 0.0735]       4.2        4.9
+Portugal       0.0864 [ 0.0303; 0.1420]       3.4        4.7
+Slovenia       0.1530 [ 0.0980; 0.2071]       3.4        4.7
+Spain          0.1390 [ 0.0916; 0.1858]       4.7        5.0
+Sweden         0.2231 [ 0.1742; 0.2708]       4.2        4.9
+Switzerland    0.1760 [ 0.1260; 0.2251]       4.1        4.9
+
+Number of studies combined: k = 20
+
+                        COR           95%-CI     z  p-value
+Fixed effect model   0.1627 [0.1526; 0.1728] 31.01 < 0.0001
+Random effects model 0.1596 [0.1338; 0.1853] 11.94 < 0.0001
+Prediction interval         [0.0415; 0.2733]               
+
+Quantifying heterogeneity:
+ tau^2 = 0.0031 [0.0016; 0.0072]; tau = 0.0552 [0.0395; 0.0851];
+ I^2 = 84.4% [77.2%; 89.4%]; H = 2.54 [2.09; 3.07]
+
+Test of heterogeneity:
+      Q d.f.  p-value
+ 122.14   19 < 0.0001
+
+Details on meta-analytical method:
+- Inverse variance method
+- DerSimonian-Laird estimator for tau^2
+- Jackson method for confidence interval of tau^2 and tau
+- Fisher's z transformation of correlations

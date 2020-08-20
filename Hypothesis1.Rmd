@@ -195,20 +195,37 @@ country.effs.dat<-
     slope_without_covs=coefficients(
       slope.mod.no.cov)$cntry[,"environ.lvl1"],
     cntry.cor.dat[,2:4])
-country.effs.dat
+
+
+country.effs.dat$partial_r.se<-1/sqrt(country.effs.dat$n-3)
+country.effs.dat$country<-
+  c("Austria",
+    "Belgium",
+    "Switzerland",
+    "Czech Republic",
+    "Germany",
+    "Estonia",
+    "Spain",
+    "Finland",
+    "France",
+    "Great Britain",
+    "Hungary",
+    "Ireland",
+    "Italy",
+    "Lithuania",
+    "Netherlands",
+    "Norway",
+    "Poland",
+    "Portugal",
+    "Sweden",
+    "Slovenia")
+
+
+country.effs.dat <- country.effs.dat[order(country.effs.dat$country),]
+
 write.csv2(country.effs.dat,"associations_within_countries.csv")
 
-#calculate the meta-analytical estimate for partial correlation
-country.effs.dat$partial_r.se<-1/sqrt(country.effs.dat$n-3)
-rma.uni(yi=transf.rtoz(country.effs.dat$partial_r),
-        sei=country.effs.dat$partial_r.se)
-
-#back-transform to r
-transf.ztor(0.1610)
-
-
 ```
-
 
 \newpage
 
@@ -293,6 +310,13 @@ voting.group.slopes.dat<-left_join(x=voting.group.effs.dat.w.country,
 write.csv2(voting.group.slopes.dat,"associations_within_voting_groups.csv")
 ```
 
+
+\newpage
+
+##### Print a forest plot
+
+```{r, code = readLines("forestplot.R")}
+```
 
 \newpage
 

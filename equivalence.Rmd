@@ -1,0 +1,377 @@
+---
+title: "Equivalence tests"
+geometry: margin=0.5in
+output:
+  pdf_document:
+    df_print: kable
+    toc: yes
+    toc_depth: 4
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '4'
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\newpage
+
+# Preparations
+
+## Load packages
+
+```{r message=FALSE, warning=FALSE}
+library(psych)
+library(lavaan)
+library(dplyr)
+```
+
+
+## Import data
+
+```{r}
+dat<-read.csv2("dat.no.miss.csv",stringsAsFactors = F)
+```
+
+\newpage
+
+# Equivalence test for Attitudes towards Refugees'
+
+## Data
+
+```{r}
+#exclude Hungary
+dat.imm<-dat %>%
+  filter(cntry!="HU") %>%
+  select(cntry,gvrfgap.R,rfgfrpc,rfgbfml.R)
+dat.imm<-na.omit(dat.imm)
+
+```
+
+## Model script
+
+```{r}
+imm.mod<-'
+#loadings
+imm.fac=~gvrfgap.R+rfgfrpc+rfgbfml.R
+
+#latent variance
+imm.fac~~c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)*imm.fac
+#latent mean
+#imm.fac~1
+
+#observed means
+gvrfgap.R~1
+rfgfrpc~1
+rfgbfml.R~1
+
+#observed variances
+gvrfgap.R~~gvrfgap.R
+rfgfrpc~~rfgfrpc
+rfgbfml.R~~rfgbfml.R
+'
+```
+
+
+## Fit Multi-group confirmatory factor analysis
+
+```{r}
+metric.imm<-lavaan(model=imm.mod,data=dat.imm,group="cntry",
+              group.equal=c("loadings"),estimator="ML")
+
+```
+
+\newpage
+
+## Print the model output
+
+```{r}
+summary(metric.imm,fit=T,rsquare=T)
+```
+
+\newpage
+
+## Equivalence tests
+
+```{r paged.print=TRUE}
+
+#obtain the tests for all constrained parameters
+imm.eq.tests<-lavTestScore(metric.imm,
+                           epc=T,standardized=T)
+#exclude non-specified parameters
+imm.eq.tests$epc<-imm.eq.tests$epc[imm.eq.tests$epc$label!="",]
+
+#combine the univariate test and epc frames
+imm.eq.tests<-left_join(x=imm.eq.tests$epc,
+                        y=imm.eq.tests$uni,
+                        by=c("plabel"="rhs"))
+
+#get country names
+groups.imm<-cbind.data.frame(group=1:19,cntry=inspect(metric.imm,"group.label"))
+#combine to equivalence test data
+imm.eq.tests<-left_join(x=imm.eq.tests,
+                        y=groups.imm,
+                        by=c("group"))
+
+#define the preregistered criteria for decisions
+
+#maximum absolute EPC
+delta=.10
+#power limit
+high.power=.80
+#type-I error
+alpha=.05
+
+#calculate power based with non-centrality parameters
+
+imm.eq.tests$ncp<-
+  (delta^2)*imm.eq.tests$X2/(imm.eq.tests$epc^2)
+imm.eq.tests$power<-
+  pchisq(ncp = imm.eq.tests$ncp,
+         df=1,q=qchisq(p=alpha,df=1,lower.tail=F),lower.tail=F)
+
+
+
+#code the decisions (according to Saris et al., 2009)
+
+imm.eq.tests$decision<-
+  ifelse(
+    (imm.eq.tests$power>=high.power &
+       imm.eq.tests$p.value >=alpha),"nm",
+    ifelse(
+      (imm.eq.tests$power>=high.power &
+         imm.eq.tests$p.value <alpha &
+         abs(imm.eq.tests$epc) <=delta),"epc:nm",
+      ifelse(
+        (imm.eq.tests$power>=high.power &
+           imm.eq.tests$p.value <alpha &
+           abs(imm.eq.tests$epc) >delta),"misspec",
+        ifelse(
+          (imm.eq.tests$power<high.power & imm.eq.tests$p.value <alpha),"misspec",
+          ifelse(
+            (imm.eq.tests$power<high.power & imm.eq.tests$p.value >alpha),"inconcl",
+            "")))))
+
+#summary of the decisions across all the parameters
+table(imm.eq.tests$decision)
+
+#Table that only contains the important numbers
+imm.eq.tests.tab<-cbind(imm.eq.tests[,c("rhs","cntry","decision")],
+                        round(
+                          imm.eq.tests[,c("est","epc","epv",
+                                          "sepc.all","X2","power","p.value")],2))
+#print the table
+imm.eq.tests.tab
+#save to drive
+write.csv2(imm.eq.tests.tab,"imm.eq.tests.tab.csv")
+
+#country-specific decisions
+table(imm.eq.tests.tab$cntry,
+      imm.eq.tests.tab$decision)
+
+
+#look for only epc-based tests for .10, .15, and .20
+
+table(imm.eq.tests$cntry,
+      abs(imm.eq.tests$epc)>.10)
+
+
+table(imm.eq.tests$cntry,
+      abs(imm.eq.tests$epc)>.15)
+
+
+table(imm.eq.tests$cntry,
+      abs(imm.eq.tests$epc)>.20)
+
+```
+
+\newpage
+
+## Summary for Equivalence test for Attitudes towards Refugees'
+
+* Of the 54 parameter constrains (19 countries * 3 loadings - 1 country as a reference group), 20 were considered as misspecification, 19 were not misspecifications (nm or epc:nm), and 15 were inclonclusive (inconcl) due to low power for statistical tests
+  + These misspecifications were spread across countries so that 6 countries had more than one misspecification
+  + This would lead to using the single item scale for measuring Attitudes towards Refugees' by the preregistered criteria
+* Observations based on only EPC (expected parameter change) showed that also the loadings of the reference group (Austria) were misspecified (epc >|.10|)
+  + In total 8 countries would have had 2 or more misspecifications based only on EPCs (.10)
+  + If the criterion would have been .15 instead of .10, 6 countries would have been non-equivalent (2 or 3 misspecifications)
+  + If the criterion would have been .20 instead of .10, only Austria and Czech would have been non-equivalent
+  
+
+
+\newpage
+
+# Equivalence test for Attitudes towards the Environment
+
+## Data
+
+```{r}
+
+dat.env<-dat %>%
+  select(cntry,inctxff.R,sbsrnen.R,banhhap.R)
+dat.env<-na.omit(dat.env)
+
+```
+
+## Model script
+
+```{r}
+env.mod<-'
+
+#loadings
+env.fac=~inctxff.R+sbsrnen.R+banhhap.R
+
+#latent variance
+env.fac~~c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)*env.fac
+#latent mean
+#env.fac~1
+
+#observed means
+inctxff.R~1
+sbsrnen.R~1
+banhhap.R~1
+
+#observed variances
+inctxff.R~~inctxff.R
+sbsrnen.R~~sbsrnen.R
+banhhap.R~~banhhap.R
+
+'
+```
+
+## Fit Multi-group confirmatory factor analysis
+
+```{r}
+
+metric.env<-lavaan(model=env.mod,data=dat.env,group="cntry",
+              group.equal=c("loadings"),estimator="ML")
+
+```
+
+\newpage
+
+## Print the model output
+
+```{r}
+summary(metric.env,fit=T,rsquare=T)
+```
+
+\newpage
+
+## Equivalence tests
+
+```{r paged.print=TRUE}
+
+
+#obtain the tests for all constrained parameters
+env.eq.tests<-lavTestScore(metric.env,
+                           epc=T,standardized=T)
+#exclude non-specified parameters
+env.eq.tests$epc<-env.eq.tests$epc[env.eq.tests$epc$label!="",]
+
+#combine the univariate test and epc frames
+env.eq.tests<-left_join(x=env.eq.tests$epc,
+                        y=env.eq.tests$uni,
+                        by=c("plabel"="rhs"))
+
+#get country names
+groups.env<-cbind.data.frame(group=1:20,cntry=inspect(metric.env,"group.label"))
+#combine to equivalence test data
+env.eq.tests<-left_join(x=env.eq.tests,
+                        y=groups.env,
+                        by=c("group"))
+
+#define the preregistered criteria for decisions
+
+#maximum absolute EPC
+delta=.10
+#power limit
+high.power=.80
+#type-I error
+alpha=.05
+
+#calculate power based with non-centrality parameters
+
+env.eq.tests$ncp<-
+  (delta^2)*env.eq.tests$X2/(env.eq.tests$epc^2)
+env.eq.tests$power<-
+  pchisq(ncp = env.eq.tests$ncp,
+         df=1,q=qchisq(p=alpha,df=1,lower.tail=F),lower.tail=F)
+
+
+
+#code the decisions (according to Saris et al., 2009)
+
+env.eq.tests$decision<-
+  ifelse(
+    (env.eq.tests$power>=high.power &
+       env.eq.tests$p.value >=alpha),"nm",
+    ifelse(
+      (env.eq.tests$power>=high.power &
+         env.eq.tests$p.value <alpha &
+         abs(env.eq.tests$epc) <=delta),"epc:nm",
+      ifelse(
+        (env.eq.tests$power>=high.power &
+           env.eq.tests$p.value <alpha &
+           abs(env.eq.tests$epc) >delta),"misspec",
+        ifelse(
+          (env.eq.tests$power<high.power & env.eq.tests$p.value <alpha),"misspec",
+          ifelse(
+            (env.eq.tests$power<high.power & env.eq.tests$p.value >alpha),"inconcl",
+            "")))))
+
+#summary of the decisions across all the parameters
+table(env.eq.tests$decision)
+
+#Table that only contains the important numbers
+env.eq.tests.tab<-cbind(env.eq.tests[,c("rhs","cntry","decision")],
+                        round(
+                          env.eq.tests[,c("est","epc","epv",
+                                          "sepc.all","X2","power","p.value")],2))
+#print the table
+env.eq.tests.tab
+#save to drive
+write.csv2(env.eq.tests.tab,"env.eq.tests.tab.csv")
+
+#country-specific decisions
+table(env.eq.tests.tab$cntry,
+      env.eq.tests.tab$decision)
+
+
+#look for only epc-based tests for .10, .15, and .20
+
+table(env.eq.tests$cntry,
+      abs(env.eq.tests$epc)>.10)
+
+
+table(env.eq.tests$cntry,
+      abs(env.eq.tests$epc)>.15)
+
+
+table(env.eq.tests$cntry,
+      abs(env.eq.tests$epc)>.20)
+```
+
+
+\newpage
+
+## Summary for Equivalence test for Attitudes towards the Environment
+
+* Of the 57 parameter constrains (20 countries * 3 loadings - 1 country as a reference group), 26 were considered as misspecifications, 15 were not misspecifications (nm or epc:nm), and 16 were inclonclusive (inconcl) due to low power for statistical tests
+  + These misspecifications were spread across countries so that 6 countries had more than one misspecification
+  + This would lead to using the single item scale for measuring Attitudes towards the Environment by the preregistered criteria
+* Observations based on only EPC (expected parameter change) showed that the loadings of the reference group (Austria) were not misspecified (epc <|.10|)
+  + In total 10 countries would have had 2 or more misspecifications based only on EPCs (.10)
+  + If the criterion would have been .15 instead of .10, 5 countries would have been non-equivalent (2 or 3 misspecifications)
+  + If the criterion would have been .20 instead of .10, only Hungary would have been non-equivalent
+
+\newpage
+
+# Session and package information
+
+```{r}
+sessionInfo()
+```

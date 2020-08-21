@@ -1,7 +1,17 @@
 ---
 title: "Hypothesis 5"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
 ---
+
+
+# Preparations
+
+```{r child = 'Preparations.Rmd'}
+```
 
 # Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
 

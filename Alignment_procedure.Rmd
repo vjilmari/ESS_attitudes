@@ -18,7 +18,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(sirt)
-
+library(psych)
+library(dplyr)
+library(lavaan)
 ```
 
 ### Read data
@@ -61,7 +63,7 @@ describeBy(dat[,env.z.vars],group=dat[,"cntry"])
 
 #exclude Hungary
 dat.env<-dat %>%
-  filter(cntry!="HU") %>%
+  #filter(cntry!="HU") %>%
   dplyr::select(cntry,all_of(env.z.vars))
 #dat.env<-na.omit(dat.env)
 
@@ -76,9 +78,9 @@ Approach by Fischer and Karl (2019)
 ### Configural models
 
 ```{r}
-par <- invariance_alignment_cfa_config(dat = dat.imm[,imm.z.vars],
+par.imm <- invariance_alignment_cfa_config(dat = dat.imm[,imm.z.vars],
                                        group = dat.imm[,"cntry"])
-par
+par.imm
 ```
 
 For Lithuania, some of the estimates are very strange. Exclude Lihtuania and rerun.
@@ -90,25 +92,25 @@ dat.imm<-dat %>%
 ```
 
 ```{r}
-par <- invariance_alignment_cfa_config(dat = dat.imm[,imm.z.vars],
+par.imm <- invariance_alignment_cfa_config(dat = dat.imm[,imm.z.vars],
                                        group = dat.imm[,"cntry"])
-par
+par.imm
 ```
 
 Few loadings are Heywood-cases, but let's see if these will be an issue in the alignment approach as well.
 
-The tolerance suggested by Robitzsch (2019) (0.4 for loadings and 0.2 for intercepts), could be too loose. Put 0.2 for both. And 
+The tolerance suggested by Robitzsch (2019) (0.4 for loadings and 0.2 for intercepts), could be too loose. Selected 0.2 for both. 
 
 ### Alignment
 
 ```{r}
-mod1 <- invariance.alignment(lambda = par$lambda,
-                             nu =par$nu,
-                             align.scale = c(0.2, 0.2),
-                             align.pow = c(0.125, 0.125))
+mod1.imm <- invariance.alignment(lambda = par.imm$lambda,
+                             nu =par.imm$nu,
+                             align.scale = c(0.2, 0.4),
+                             align.pow = c(.125, .125))
 
-mod1$es.invariance["R2",]
-mod1
+mod1.imm$es.invariance["R2",]
+mod1.imm
 ```
 
 Invariance in loadings is quite well captured by the alignment, in intercepts this is pooreer, but it doesn't matter for the application.
@@ -116,32 +118,53 @@ Invariance in loadings is quite well captured by the alignment, in intercepts th
 ### Constraints
 
 ```{r}
-cmod1 <-
-  invariance_alignment_constraints(mod1,
-                                   lambda_parm_tol = 0.2,
-                                   nu_parm_tol = 0.2)
-summary(cmod1)
+cmod1.imm <-
+  invariance_alignment_constraints(mod1.imm,
+                                   lambda_parm_tol = 0.20,
+                                   nu_parm_tol = 0.20) 
+#.20/.20 seems to work with three removed countries
+summary(cmod1.imm)
 ```
 
 ### Use the constraints to refit a CFA
 
-Automize the model script rows by the DIF table of the constrain models
+Automize the model script rows by the DIF table of the constrain models. It appeared that the script does not deal with "-" signs, so recode those to capital letter
 
 ```{r}
-str(cmod1$lambda_list)
-lambda.constr<-data.frame(cmod1$lambda_list$parm_dif)
+assign.constraints<-function(data,prefix){
+  for (i in 1:ncol(data)){
+    uniques<-unique(data[,i])
+    for (j in 1:nrow(data)){
+      data[j,i]<-paste0(prefix,".",i,".",LETTERS[which(uniques==data[j,i])])
+      
+    }
+    
+  }
+  return(data)
+}
 
-round(lambda.constr,3)
+lambda.constr<-assign.constraints(
+  data=data.frame(cmod1.imm$lambda_list$parm_dif),
+  prefix="l")
+lambda.constr
 
-lambda.names.imm.1.z<-paste0("l1.",round(lambda.constr[,1],3))
-lambda.names.imm.2.z<-paste0("l2.",round(lambda.constr[,2],3))
-lambda.names.imm.3.z<-paste0("l3.",round(lambda.constr[,3],3))
+#lambda.names.imm.1.z<-paste0("l1.",round(lambda.constr[,1],3))
+#lambda.names.imm.2.z<-paste0("l2.",round(lambda.constr[,2],3))
+#lambda.names.imm.3.z<-paste0("l3.",round(lambda.constr[,3],3))
 
-nu.constr<-data.frame(cmod1$nu_list$parm_dif)
+lambda.names.imm.1.z<-lambda.constr[,1]
+lambda.names.imm.2.z<-lambda.constr[,2]
+lambda.names.imm.3.z<-lambda.constr[,3]
 
-nu.names.imm.1.z<-paste0("n1.",round(nu.constr[,1],3))
-nu.names.imm.2.z<-paste0("n2.",round(nu.constr[,2],3))
-nu.names.imm.3.z<-paste0("n3.",round(nu.constr[,3],3))
+nu.constr<-assign.constraints(
+  data=data.frame(cmod1.imm$nu_list$parm_dif),
+  prefix="n")
+nu.constr
+
+
+nu.names.imm.1.z<-nu.constr[,1]
+nu.names.imm.2.z<-nu.constr[,2]
+nu.names.imm.3.z<-nu.constr[,3]
 
 imm.1.z.loads<-paste0("c(",paste0(lambda.names.imm.1.z,collapse=","),")*imm.1.z")
 imm.2.z.loads<-paste0("c(",paste0(lambda.names.imm.2.z,collapse=","),")*imm.2.z")
@@ -161,39 +184,59 @@ F.imm.means<-paste0("F.imm~c(",paste0(paste0("m",1:nrow(lambda.constr)),collapse
 
 #SD constraint (product ==1)
 
-
-
 F.imm.var.constr<-paste0("sqrt(",
        paste0(paste0("v",1:nrow(lambda.constr)),collapse="*"),
        ")==1")
 
-CFA.script<-paste0(imm.loads,"\n",
+#mean constraint (mean ==0)
+
+F.imm.mean.constr<-paste0("(",
+       paste0(paste0("m",1:nrow(lambda.constr)),collapse="+"),
+       ")/",nrow(lambda.constr),"==0")
+
+CFA.script.imm<-paste0(imm.loads,"\n",
                    imm.1.z.nu,"\n",
                    imm.2.z.nu,"\n",
                    imm.3.z.nu,"\n",
                    F.imm.vars,"\n",
                    F.imm.means,"\n",
-                   F.imm.var.constr
+                   F.imm.var.constr,"\n",
+                   F.imm.mean.constr
                    )
-CFA.script
+CFA.script.imm
+
+
+
 ```
 
 ### Fit the refined model
 
 ```{r}
-#remember to fit this to the final dataset that will be used
+#remember to fit this to the final dataset that will be used at the end for the factor scores
 
-fit.ref<-lavaan(model=CFA.script,
+#try to only constrain loadings and keep intercepts free
+#they need to be coded manually
+
+fit.ref.imm<-lavaan(model=CFA.script.imm,
              auto.var=T,
                 auto.fix.first=F,
+             #meanstructure=T,
              data=dat.imm,
-             group=c("cntry"),
-             missing="fiml")
+             group=c("cntry"))
 ```
 
 ```{r}
-fitMeasures(fit.ref)
 
-summary(fit.ref)
-parameterestimates(fit.ref)
+fitMeasures(fit.ref.imm)
+summary(fit.ref.imm)
+
+
+
+
+parameterestimates(fit.ref.imm)[parameterestimates(fit.ref.imm)$label!="",]
+
+parameterestimates(fit.ref.imm)[parameterestimates(fit.ref.imm)$label=="",]
+table(parameterestimates(fit.ref.imm)$label)
+
+table(parameterestimates(fit.ref.imm)[parameterestimates(fit.ref.imm)$label!="","label"])
 ```

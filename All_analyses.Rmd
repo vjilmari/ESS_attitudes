@@ -60,6 +60,13 @@ options(width = 130)
 ```
 
 
+
+
+\newpage
+
+```{r child = 'Exploratory_non_linearity.Rmd'}
+```
+
 \newpage
 
 ```{r child = 'Exploratory_moderators.Rmd'}
@@ -69,11 +76,10 @@ options(width = 130)
 
 \newpage
 
-```{r child = 'Exploratory_non_linearity.Rmd'}
+```{r child = 'Exploratory_Hypothesis5_Interest.Rmd'}
 ```
-
 
 \newpage
 
-```{r child = 'Exploratory_Hypothesis5_Interest.Rmd'}
+```{r child = 'Exploratory_Hypothesis5_News.Rmd'}
 ```

@@ -1,0 +1,478 @@
+---
+title: "Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
+---
+
+
+
+# Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes
+
+### Model 0: Intercepts only
+
+```{r}
+
+H1.mod0<-lmer(refugees~(1|voting.group)+(1|cntry),
+              data=dat,REML=F)
+
+(FE.H1.mod0<-getFE(H1.mod0))
+(VC.H1.mod0<-getVC(H1.mod0))
+getDEV(H1.mod0)
+
+
+#ICC
+
+##voting group
+
+VC.H1.mod0[VC.H1.mod0$grp=="voting.group","est_SD2"]/
+  sum(VC.H1.mod0[,"est_SD2"])
+
+##country
+
+VC.H1.mod0[VC.H1.mod0$grp=="cntry","est_SD2"]/
+  sum(VC.H1.mod0[,"est_SD2"])
+
+
+
+```
+
+
+\newpage
+
+### Model 1: Covariates
+
+```{r}
+H1.mod1<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup
+                ,data=dat,REML=F)
+
+#model comparison
+anova(H1.mod0,
+      H1.mod1)
+
+(FE.H1.mod1<-getFE(H1.mod1))
+(VC.H1.mod1<-getVC(H1.mod1))
+getDEV(H1.mod1)
+
+write.csv2(FE.H1.mod1,"FE.H1.mod1.csv")
+
+#variance explained
+
+##lvl 1: individuals
+
+(VC.H1.mod0[VC.H1.mod0$grp=="Residual","est_SD2"]-
+     VC.H1.mod1[VC.H1.mod1$grp=="Residual","est_SD2"])/
+  VC.H1.mod0[VC.H1.mod0$grp=="Residual","est_SD2"]
+
+##lvl 2: voting group
+
+(VC.H1.mod0[VC.H1.mod0$grp=="voting.group","est_SD2"]-
+     VC.H1.mod1[VC.H1.mod1$grp=="voting.group","est_SD2"])/
+  VC.H1.mod0[VC.H1.mod0$grp=="voting.group","est_SD2"]
+
+##lvl 3: country
+
+(VC.H1.mod0[VC.H1.mod0$grp=="cntry","est_SD2"]-
+     VC.H1.mod1[VC.H1.mod1$grp=="cntry","est_SD2"])/
+  VC.H1.mod0[VC.H1.mod0$grp=="cntry","est_SD2"]
+
+##total
+
+(sum(VC.H1.mod0$est_SD2)-sum(VC.H1.mod1$est_SD2))/
+  sum(VC.H1.mod0$est_SD2)
+  
+#individual contributions of covariates
+anova(H1.mod1)
+
+
+
+```
+
+\newpage
+
+### Model 2: Fixed effects for Attitudes towards the Environment
+
+```{r}
+H1.mod2<-lmer(refugees~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1,data=dat,REML=F)
+
+#model comparison
+anova(H1.mod1,
+      H1.mod2)
+
+(FE.H1.mod2<-getFE(H1.mod2))
+(VC.H1.mod2<-getVC(H1.mod2))
+getDEV(H1.mod2)
+
+
+write.csv2(FE.H1.mod2,"FE.H1.mod2.csv")
+
+#variance explained
+
+##lvl 1: individuals
+
+(VC.H1.mod1[VC.H1.mod1$grp=="Residual","est_SD2"]-
+     VC.H1.mod2[VC.H1.mod2$grp=="Residual","est_SD2"])/
+  VC.H1.mod1[VC.H1.mod1$grp=="Residual","est_SD2"]
+
+##total
+
+(sum(VC.H1.mod1$est_SD2)-sum(VC.H1.mod2$est_SD2))/
+  sum(VC.H1.mod1$est_SD2)
+  
+
+```
+
+\newpage
+
+### Model 3: Random effects for Attitudes towards the Environment
+
+```{r}
+H1.mod3<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+#model comparison
+anova(H1.mod2,
+      H1.mod3)
+
+(FE.H1.mod3<-getFE(H1.mod3))
+(VC.H1.mod3<-getVC(H1.mod3))
+getDEV(H1.mod3)
+
+write.csv2(FE.H1.mod3,"FE.H1.mod3.csv")
+
+
+
+
+```
+
+\newpage
+
+
+#### Describe the correlation between refugee and environment attitudes by country
+
+```{r}
+#model implied associations (posterior modes)
+
+#fit also a model without covariates
+
+
+slope.mod.no.cov<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+#correlations from data
+
+cntry.cor.dat<-dat %>%
+  dplyr::select(cntry,environ.gmc,refugees,age,gender,educ,resid) %>%
+  group_by(cntry) %>%
+  summarize(observed_r=cor(environ.gmc,refugees,use="pairwise.complete.obs"),
+            partial_r=pcor.test(x=environ.gmc,
+                         y=refugees,
+                         z=data.frame(age,
+                                      gender,
+                                      educ,
+                                      resid))$estimate,
+            n=n())
+
+#posterior modes from multilevel models
+
+country.effs.dat<-
+  cbind.data.frame(
+    cntry=rownames(
+      coefficients(H1.mod3)$cntry),
+    slope_with_covs=coefficients(
+      H1.mod3)$cntry[,"environ.lvl1"],
+    slope_without_covs=coefficients(
+      slope.mod.no.cov)$cntry[,"environ.lvl1"],
+    cntry.cor.dat[,2:4])
+
+
+country.effs.dat$partial_r.se<-1/sqrt(country.effs.dat$n-3)
+country.effs.dat$country<-
+  c("Austria",
+    "Belgium",
+    "Switzerland",
+    #"Czech Republic",
+    "Germany",
+    "Estonia",
+    "Spain",
+    "Finland",
+    #"France",
+    "Great Britain",
+    #"Hungary",
+    "Ireland",
+    "Italy",
+    #"Lithuania",
+    "Netherlands",
+    "Norway",
+    #"Poland",
+    "Portugal",
+    "Sweden",
+    "Slovenia")
+
+
+country.effs.dat <- country.effs.dat[order(country.effs.dat$country),]
+
+write.csv2(country.effs.dat,"associations_within_countries.csv")
+
+```
+
+\newpage
+
+#### Describe the correlation between refugee and environment attitudes by voting group
+
+* It was not possible to calculate the partial coefficients for all voting groups because of small group size and lack of variance in either attitudes or covariates, so only zero-order correlations were calculated as well as posterior mode slopes
+
+```{r}
+
+#get size of each voting group
+
+voting.group.n<-dat %>%
+  group_by(voting.group) %>%
+  summarize(voting.group.n=n())
+
+#add voting group size to the main data
+
+dat<-left_join(x=dat,
+               y=voting.group.n,
+               by=c("voting.group"))
+
+#calculate observed correlations
+
+
+all.voting.group.cor.dat<-dat %>%
+  #filter(voting.group.n>12) %>%
+  dplyr::select(voting.group,environ.gmc,age,
+                                      gender,
+                                      educ,
+                                      resid,
+         refugees,anti.imm.party.dummy,
+         pro.env.party.dummy) %>%
+  group_by(voting.group) %>%
+  summarize(observed_r=cor(environ.gmc,
+                           refugees,use="pairwise.complete.obs"),
+
+            n=n(),
+            anti.imm=sum(anti.imm.party.dummy)/n(),
+            pro.env=sum(pro.env.party.dummy)/n())
+
+#posterior modes for voting group specific associations
+
+voting.group.effs.dat<-
+  cbind.data.frame(
+    voting.group=rownames(
+      coefficients(H1.mod3)$voting.group),
+    slope_with_covs=coefficients(
+      H1.mod3)$voting.group[,"environ.lvl1"],
+    slope_without_covs=coefficients(
+      slope.mod.no.cov)$voting.group[,"environ.lvl1"])
+
+#add country level variability to slope-estimates
+
+voting.group.effs.dat$cntry<-substr(voting.group.effs.dat$voting.group,1,2)
+voting.group.effs.dat.w.country<-left_join(x=voting.group.effs.dat,
+                                           y=country.effs.dat,
+                                           by="cntry",suffix=c("",".cntry"))
+
+voting.group.effs.dat.w.country$slope_with_covs_add_cntry<-
+  voting.group.effs.dat.w.country$slope_with_covs+
+  voting.group.effs.dat.w.country$slope_with_covs.cntry
+  
+voting.group.effs.dat.w.country$slope_without_covs_add_cntry<-
+  voting.group.effs.dat.w.country$slope_without_covs+
+  voting.group.effs.dat.w.country$slope_without_covs.cntry
+
+voting.group.effs.dat.w.country<-
+  voting.group.effs.dat.w.country %>%
+  dplyr::select(voting.group,
+                slope_with_covs,
+                slope_without_covs,
+                slope_with_covs_add_cntry,
+                slope_without_covs_add_cntry,
+                n)
+
+
+voting.group.slopes.dat<-left_join(x=voting.group.effs.dat.w.country,
+                                 y=all.voting.group.cor.dat,
+                                 by=c("voting.group"))
+
+
+write.csv2(voting.group.slopes.dat,"associations_within_voting_groups.csv")
+```
+
+
+\newpage
+
+##### Print a forest plot
+
+```{r, code = readLines("forestplot.R")}
+```
+
+\newpage
+
+## Alternative (exploratory) approach for Hypothesis 1 with Environment attitudes as dependent variable, and immigrant attitudes as independent
+
+### Model 0: Intercepts only
+
+```{r}
+
+H1.env.mod0<-lmer(environ.gmc~(1|voting.group)+(1|cntry),data=dat,REML=F)
+
+(FE.H1.env.mod0<-getFE(H1.env.mod0))
+(VC.H1.env.mod0<-getVC(H1.env.mod0))
+getDEV(H1.env.mod0)
+
+
+#ICC
+
+##voting group
+
+VC.H1.env.mod0[VC.H1.env.mod0$grp=="voting.group","est_SD2"]/
+  sum(VC.H1.env.mod0[,"est_SD2"])
+
+##country
+
+VC.H1.env.mod0[VC.H1.env.mod0$grp=="cntry","est_SD2"]/
+  sum(VC.H1.env.mod0[,"est_SD2"])
+
+```
+
+
+\newpage
+
+### Model 1: Covariates
+
+```{r}
+H1.env.mod1<-lmer(environ.gmc~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup
+                ,data=dat,REML=F)
+
+#model comparison
+anova(H1.env.mod0,
+      H1.env.mod1)
+
+(FE.H1.env.mod1<-getFE(H1.env.mod1))
+(VC.H1.env.mod1<-getVC(H1.env.mod1))
+getDEV(H1.env.mod1)
+
+write.csv2(FE.H1.env.mod1,"FE.H1.env.mod1.csv")
+
+#variance explained
+
+##lvl 1: individuals
+
+(VC.H1.env.mod0[VC.H1.env.mod0$grp=="Residual","est_SD2"]-
+     VC.H1.env.mod1[VC.H1.env.mod1$grp=="Residual","est_SD2"])/
+  VC.H1.env.mod0[VC.H1.env.mod0$grp=="Residual","est_SD2"]
+
+##lvl 2: voting group
+
+(VC.H1.env.mod0[VC.H1.env.mod0$grp=="voting.group","est_SD2"]-
+     VC.H1.env.mod1[VC.H1.env.mod1$grp=="voting.group","est_SD2"])/
+  VC.H1.env.mod0[VC.H1.env.mod0$grp=="voting.group","est_SD2"]
+
+##lvl 3: country
+
+(VC.H1.env.mod0[VC.H1.env.mod0$grp=="cntry","est_SD2"]-
+     VC.H1.env.mod1[VC.H1.env.mod1$grp=="cntry","est_SD2"])/
+  VC.H1.env.mod0[VC.H1.env.mod0$grp=="cntry","est_SD2"]
+
+##total
+
+(sum(VC.H1.env.mod0$est_SD2)-sum(VC.H1.env.mod1$est_SD2))/
+  sum(VC.H1.env.mod0$est_SD2)
+  
+#individual contributions of covariates
+anova(H1.env.mod1)
+
+
+
+```
+
+\newpage
+
+### Model 2: Fixed effects for Attitudes towards Immigrants
+
+```{r}
+H1.env.mod2<-lmer(environ.gmc~(1|voting.group)+(1|cntry)+
+                age+gender+educ+resid+occup+
+                refugees.lvl1,data=dat,REML=F)
+
+#model comparison
+anova(H1.env.mod1,
+      H1.env.mod2)
+
+(FE.H1.env.mod2<-getFE(H1.env.mod2))
+(VC.H1.env.mod2<-getVC(H1.env.mod2))
+getDEV(H1.env.mod2)
+
+
+write.csv2(FE.H1.env.mod2,"FE.H1.env.mod2.csv")
+
+#variance explained
+
+##lvl 1: individuals
+
+(VC.H1.env.mod1[VC.H1.env.mod1$grp=="Residual","est_SD2"]-
+     VC.H1.env.mod2[VC.H1.env.mod2$grp=="Residual","est_SD2"])/
+  VC.H1.env.mod1[VC.H1.env.mod1$grp=="Residual","est_SD2"]
+
+##lvl 2: voting group
+
+(VC.H1.env.mod1[VC.H1.env.mod1$grp=="voting.group","est_SD2"]-
+     VC.H1.env.mod2[VC.H1.env.mod2$grp=="voting.group","est_SD2"])/
+  VC.H1.env.mod1[VC.H1.env.mod1$grp=="voting.group","est_SD2"]
+
+##lvl 3: country
+
+(VC.H1.env.mod1[VC.H1.env.mod1$grp=="cntry","est_SD2"]-
+     VC.H1.env.mod2[VC.H1.env.mod2$grp=="cntry","est_SD2"])/
+  VC.H1.env.mod1[VC.H1.env.mod1$grp=="cntry","est_SD2"]
+
+##total
+
+(sum(VC.H1.env.mod1$est_SD2)-sum(VC.H1.env.mod2$est_SD2))/
+  sum(VC.H1.env.mod1$est_SD2)
+  
+```
+
+\newpage
+
+### Model 3: Random effects for Attitudes towards the Immigrant
+
+```{r}
+H1.env.mod3<-lmer(environ.gmc~(refugees.lvl1|voting.group)+
+                (refugees.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                refugees.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+#model comparison
+anova(H1.env.mod2,
+      H1.env.mod3)
+
+(FE.H1.env.mod3<-getFE(H1.env.mod3))
+(VC.H1.env.mod3<-getVC(H1.env.mod3))
+getDEV(H1.env.mod3)
+
+write.csv2(FE.H1.env.mod3,"FE.H1.env.mod3.csv")
+
+
+
+
+```
+

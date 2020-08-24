@@ -9,8 +9,6 @@ output:
 
 
 
-\newpage
-
 # Hypothesis 3: Those who voted for anti-immigration parties will report lower pro-environment attitudes than those who voted for pro-environment parties.
 
 ### Model 0: random intercepts for environment attitudes

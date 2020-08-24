@@ -1,0 +1,123 @@
+---
+title: "Alignment"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load packages
+
+```{r}
+library(sirt)
+```
+
+## Read data
+
+```{r}
+dat<-read.csv2("C:/Users/vjilmari/R/ESS_attitudes/dat.no.miss.csv",stringsAsFactors = F)
+
+imm.vars<-c("gvrfgap.R","rfgfrpc","rfgbfml.R")
+env.vars<-c("inctxff.R","sbsrnen.R","banhhap.R")
+```
+
+\newpage
+
+## Describe the variables
+
+```{r}
+
+describeBy(dat.imm[,imm.vars],group = dat.imm$cntry)
+
+table(dat.imm[,imm.vars[1]],dat.imm$cntry)
+table(dat.imm[,imm.vars[2]],dat.imm$cntry)
+table(dat.imm[,imm.vars[3]],dat.imm$cntry)
+```
+
+## Select variables
+
+```{r}
+dat.imm<-dat %>% 
+  filter(cntry!="HU") %>% 
+  dplyr::select(cntry,gvrfgap.R,rfgfrpc,rfgbfml.R) %>%
+  na.omit()
+```
+
+\newpage
+
+## Alignment for anti-refugee attitudes
+
+```{r}
+par.imm <- invariance_alignment_cfa_config(dat = dat.imm[,imm.vars],
+                                       group = dat.imm$cntry)
+par.imm
+```
+
+
+There are some serious problems, especially with Lithuania. Exclude Lithuania and re-estimate
+
+
+```{r}
+dat.imm<-dat %>% 
+  filter(cntry!="HU" & cntry!="LT") %>% 
+  dplyr::select(cntry,gvrfgap.R,rfgfrpc,rfgbfml.R) %>%
+  na.omit()
+```
+
+```{r}
+par.imm <- invariance_alignment_cfa_config(dat = dat.imm[,imm.vars],
+                                       group = dat.imm$cntry)
+par.imm
+
+```
+
+Looks much better. Now examine the alignment
+
+```{r}
+
+mod1.imm <- invariance.alignment(lambda = par.imm$lambda,
+                             nu =par.imm$nu,
+                             align.scale = c(0.2, 0.4),
+                             align.pow = c(0.25, 0.25))
+
+mod1.imm$es.invariance["R2",]
+mod1.imm
+str(mod1.imm)
+```
+
+
+
+Save aligned lambda coefficients
+
+```{r}
+alig.lambda.imm<-data.frame(mod1.imm$lambda.aligned)
+round(alig.lambda.imm,2)
+```
+
+Examine constraints
+
+```{r}
+cmod1.imm <- invariance_alignment_constraints(mod1.imm,
+                                          lambda_parm_tol = 0.4,
+                                          nu_parm_tol = 0.2)
+summary(cmod1.imm)
+```
+
+# Check if you can reproduce this with manual lavaan script
+
+```{r}
+library(semTools)
+
+model1 <- "
+F.imm=~ gvrfgap.R + rfgfrpc + rfgbfml.R
+F.imm ~~ 1*F.imm
+"
+
+res <- measurementInvariance(model1, std.lv=TRUE, data=dat.imm, group=c("cntry"))
+
+```

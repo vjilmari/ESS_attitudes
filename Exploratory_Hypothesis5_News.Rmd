@@ -1,6 +1,10 @@
 ---
 title: "Exlopratory Hypothesis 5 with Political News Consumption"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
 ---
 
 # Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 

@@ -52,9 +52,11 @@ dat.imm<-dat %>%
 #dat.imm<-na.omit(dat.imm)
 
 
-dat$env.1.z<-na.standardize(dat$gvrfgap.R)
-dat$env.2.z<-na.standardize(dat$rfgfrpc)
-dat$env.3.z<-na.standardize(dat$rfgbfml.R)
+env.vars<-c("inctxff.R","sbsrnen.R","banhhap.R")
+
+dat$env.1.z<-na.standardize(dat$inctxff.R)
+dat$env.2.z<-na.standardize(dat$sbsrnen.R)
+dat$env.3.z<-na.standardize(dat$banhhap.R)
 
 env.z.vars<-c("env.1.z","env.2.z","env.3.z")
 
@@ -63,9 +65,9 @@ describeBy(dat[,env.z.vars],group=dat[,"cntry"])
 
 #exclude Hungary
 dat.env<-dat %>%
-  #filter(cntry!="HU") %>%
   dplyr::select(cntry,all_of(env.z.vars))
 #dat.env<-na.omit(dat.env)
+
 
 
 ```
@@ -83,11 +85,13 @@ par.imm <- invariance_alignment_cfa_config(dat = dat.imm[,imm.z.vars],
 par.imm
 ```
 
-For Lithuania, some of the estimates are very strange. Exclude Lihtuania and rerun.
+For Lithuania, solution was not found. For Poland and Czech, there are negative variances. Also for France, the model seems to produce Heywood loadings and error variances (>1)
+
+Try to refit when these countries are excluded
 
 ```{r}
 dat.imm<-dat %>%
-  filter(cntry!="HU" & cntry!="LT") %>%
+  filter(cntry!="HU" & cntry!="LT" & cntry!="CZ" & cntry!="PL" & cntry!="FR") %>%
   dplyr::select(cntry,all_of(imm.z.vars))
 ```
 
@@ -106,14 +110,14 @@ The tolerance suggested by Robitzsch (2019) (0.4 for loadings and 0.2 for interc
 ```{r}
 mod1.imm <- invariance.alignment(lambda = par.imm$lambda,
                              nu =par.imm$nu,
-                             align.scale = c(0.2, 0.4),
+                             align.scale = c(0.2, 0.2),
                              align.pow = c(.125, .125))
 
 mod1.imm$es.invariance["R2",]
 mod1.imm
 ```
 
-Invariance in loadings is quite well captured by the alignment, in intercepts this is pooreer, but it doesn't matter for the application.
+Invariance in loadings is quite well captured by the alignment, in intercepts this is poorer, but it doesn't matter for the application.
 
 ### Constraints
 
@@ -121,8 +125,8 @@ Invariance in loadings is quite well captured by the alignment, in intercepts th
 cmod1.imm <-
   invariance_alignment_constraints(mod1.imm,
                                    lambda_parm_tol = 0.20,
-                                   nu_parm_tol = 0.20) 
-#.20/.20 seems to work with three removed countries
+                                   nu_parm_tol = 0.15) 
+
 summary(cmod1.imm)
 ```
 
@@ -188,7 +192,7 @@ F.imm.var.constr<-paste0("sqrt(",
        paste0(paste0("v",1:nrow(lambda.constr)),collapse="*"),
        ")==1")
 
-#mean constraint (mean ==0)
+#mean constraint (mean for some group is ==0)
 
 F.imm.mean.constr<-paste0("(",
        paste0(paste0("m",1:nrow(lambda.constr)),collapse="+"),
@@ -201,7 +205,7 @@ CFA.script.imm<-paste0(imm.loads,"\n",
                    F.imm.vars,"\n",
                    F.imm.means,"\n",
                    F.imm.var.constr,"\n",
-                   F.imm.mean.constr
+                   "m1==0"
                    )
 CFA.script.imm
 
@@ -220,7 +224,6 @@ CFA.script.imm
 fit.ref.imm<-lavaan(model=CFA.script.imm,
              auto.var=T,
                 auto.fix.first=F,
-             #meanstructure=T,
              data=dat.imm,
              group=c("cntry"))
 ```
@@ -231,12 +234,271 @@ fitMeasures(fit.ref.imm)
 summary(fit.ref.imm)
 
 
+#get means and SDs for factors
+
+par.est.imm<-parameterestimates(fit.ref.imm)
+var.imm<-par.est.imm[grepl("v",par.est.imm$label),c("group","est")]
+var.imm[,2]<-sqrt(var.imm[,2])
+mean.imm<-par.est.imm[grepl("m",par.est.imm$label),c("group","est")]
+cbind.data.frame(group=inspect(fit.ref.imm,"group.label"),
+      M=round(mean.imm[,2],2),
+      SD=round(sqrt(var.imm[,2]),2))
 
 
-parameterestimates(fit.ref.imm)[parameterestimates(fit.ref.imm)$label!="",]
-
-parameterestimates(fit.ref.imm)[parameterestimates(fit.ref.imm)$label=="",]
-table(parameterestimates(fit.ref.imm)$label)
-
-table(parameterestimates(fit.ref.imm)[parameterestimates(fit.ref.imm)$label!="","label"])
 ```
+
+\newpage
+
+
+# Alignment for environment attitudes
+
+Approach by Fischer and Karl (2019)
+
+### Configural models
+
+```{r}
+par.env <- invariance_alignment_cfa_config(dat = dat.env[,env.z.vars],
+                                       group = dat.env[,"cntry"])
+par.env
+```
+
+Configural model does not converge for Hungary. Czech has some Heywood error variances as well.
+
+Try to refit when these countries are excluded (remove also the countries that were removed for refugee attitudes)
+
+```{r}
+dat.env<-dat %>%
+  filter(cntry!="HU" & cntry!="LT" & cntry!="CZ" & cntry!="PL" & cntry!="FR") %>%
+  dplyr::select(cntry,all_of(env.z.vars))
+```
+
+```{r}
+par.env <- invariance_alignment_cfa_config(dat = dat.env[,env.z.vars],
+                                       group = dat.env[,"cntry"])
+par.env
+```
+
+The tolerance suggested by Robitzsch (2019) (0.4 for loadings and 0.2 for intercepts), could be too loose. Selected 0.2 for both. 
+
+### Alignment
+
+```{r}
+mod1.env <- invariance.alignment(lambda = par.env$lambda,
+                             nu =par.env$nu,
+                             align.scale = c(0.2, 0.2),
+                             align.pow = c(.125, .125))
+
+mod1.env$es.invariance["R2",]
+mod1.env
+```
+
+Invariance in loadings is quite well captured by the alignment, in intercepts this is very poor, but it doesn't matter for this application.
+
+### Constraints
+
+```{r}
+cmod1.env <-
+  invariance_alignment_constraints(mod1.env,
+                                   lambda_parm_tol = 0.10,
+                                   nu_parm_tol = 0.20) 
+
+summary(cmod1.env)
+```
+
+### Use the constraints to refit a CFA
+
+Automize the model script rows by the DIF table of the constrain models. It appeared that the script does not deal with "-" signs, so recode those to capital letter
+
+```{r}
+assign.constraints<-function(data,prefix){
+  for (i in 1:ncol(data)){
+    uniques<-unique(data[,i])
+    for (j in 1:nrow(data)){
+      data[j,i]<-paste0(prefix,".",i,".",LETTERS[which(uniques==data[j,i])])
+      
+    }
+    
+  }
+  return(data)
+}
+
+lambda.constr<-assign.constraints(
+  data=data.frame(cmod1.env$lambda_list$parm_dif),
+  prefix="l")
+lambda.constr
+
+#lambda.names.env.1.z<-paste0("l1.",round(lambda.constr[,1],3))
+#lambda.names.env.2.z<-paste0("l2.",round(lambda.constr[,2],3))
+#lambda.names.env.3.z<-paste0("l3.",round(lambda.constr[,3],3))
+
+lambda.names.env.1.z<-lambda.constr[,1]
+lambda.names.env.2.z<-lambda.constr[,2]
+lambda.names.env.3.z<-lambda.constr[,3]
+
+nu.constr<-assign.constraints(
+  data=data.frame(cmod1.env$nu_list$parm_dif),
+  prefix="n")
+nu.constr
+
+
+nu.names.env.1.z<-nu.constr[,1]
+nu.names.env.2.z<-nu.constr[,2]
+nu.names.env.3.z<-nu.constr[,3]
+
+env.1.z.loads<-paste0("c(",paste0(lambda.names.env.1.z,collapse=","),")*env.1.z")
+env.2.z.loads<-paste0("c(",paste0(lambda.names.env.2.z,collapse=","),")*env.2.z")
+env.3.z.loads<-paste0("c(",paste0(lambda.names.env.3.z,collapse=","),")*env.3.z")
+
+env.loads<-paste0("F.env=~",env.1.z.loads," + ",env.2.z.loads," + ",env.3.z.loads)
+
+env.1.z.nu<-paste0("env.1.z~c(",paste0(nu.names.env.1.z,collapse=","),")*1")
+
+env.2.z.nu<-paste0("env.2.z~c(",paste0(nu.names.env.2.z,collapse=","),")*1")
+
+env.3.z.nu<-paste0("env.3.z~c(",paste0(nu.names.env.3.z,collapse=","),")*1")
+
+F.env.vars<-paste0("F.env~~c(",paste0(paste0("v",1:nrow(lambda.constr)),collapse=","),")*F.env")
+
+F.env.means<-paste0("F.env~c(",paste0(paste0("m",1:nrow(lambda.constr)),collapse=","),")*1")
+
+#SD constraint (product ==1)
+
+F.env.var.constr<-paste0("sqrt(",
+       paste0(paste0("v",1:nrow(lambda.constr)),collapse="*"),
+       ")==1")
+
+#mean constraint (mean for some group is ==0)
+
+F.env.mean.constr<-paste0("(",
+       paste0(paste0("m",1:nrow(lambda.constr)),collapse="+"),
+       ")/",nrow(lambda.constr),"==0")
+
+CFA.script.env<-paste0(env.loads,"\n",
+                   env.1.z.nu,"\n",
+                   env.2.z.nu,"\n",
+                   env.3.z.nu,"\n",
+                   F.env.vars,"\n",
+                   F.env.means,"\n",
+                   F.env.var.constr,"\n",
+                   "m1==0"
+                   )
+CFA.script.env
+
+
+
+```
+
+### Fit the refined model
+
+```{r}
+#remember to fit this to the final dataset that will be used at the end for the factor scores
+
+#try to only constrain loadings and keep intercepts free
+#they need to be coded manually
+
+fit.ref.env<-lavaan(model=CFA.script.env,
+             auto.var=T,
+                auto.fix.first=F,
+             data=dat.env,
+             group=c("cntry"))
+```
+
+```{r}
+
+fitMeasures(fit.ref.env)
+summary(fit.ref.env)
+
+
+#get means and SDs for factors
+
+par.est.env<-parameterestimates(fit.ref.env)
+var.env<-par.est.env[grepl("v",par.est.env$label),c("group","est")]
+var.env[,2]<-sqrt(var.env[,2])
+mean.env<-par.est.env[grepl("m",par.est.env$label),c("group","est")]
+cbind.data.frame(group=inspect(fit.ref.env,"group.label"),
+      M=round(mean.env[,2],2),
+      SD=round(sqrt(var.env[,2]),2))
+
+
+```
+
+\newpage
+
+# Calculate factor scores
+
+This needs to be done for a dataset that does not the countries that were removed. 
+
+```{r}
+alig.dat<-dat %>%
+  filter(cntry!="HU" & cntry!="LT" & cntry!="PL" & cntry!="CZ" & cntry!="FR")
+  
+```
+
+### Refit the models
+
+```{r}
+
+fit.ref.imm<-lavaan(model=CFA.script.imm,
+             auto.var=T,
+                auto.fix.first=F,
+             missing="fiml",
+             data=alig.dat,
+             group=c("cntry"))
+
+fitMeasures(fit.ref.imm)
+summary(fit.ref.imm,fit=T,rsquare=T)
+
+fit.ref.env<-lavaan(model=CFA.script.env,
+             auto.var=T,
+                auto.fix.first=F,
+             missing="fiml",
+             data=alig.dat,
+             group=c("cntry"))
+
+fitMeasures(fit.ref.env)
+summary(fit.ref.env,fit=T,rsquare=T)
+```
+
+```{r}
+
+
+
+idx <- lavInspect(fit.ref.imm, "case.idx") # list: 1 vector per group
+fscores.imm<-lavPredict(object=fit.ref.imm,type = "lv",newdata = alig.dat,
+                        method = "regression")         # list: 1 matrix per group
+
+## loop over groups and factors
+for (g in seq_along(fscores.imm)) {
+  for (fs in colnames(fscores.imm[[g]])) {
+    alig.dat[ idx[[g]], fs] <- fscores.imm[[g]][ , fs]
+  }
+}
+
+describe(alig.dat$F.imm)
+
+
+
+```
+
+```{r}
+idx <- lavInspect(fit.ref.env, "case.idx") # list: 1 vector per group
+fscores.env<-lavPredict(object=fit.ref.env,type = "lv",newdata = alig.dat,
+                        method = "regression")         # list: 1 matrix per group
+
+## loop over groups and factors
+for (g in seq_along(fscores.env)) {
+  for (fs in colnames(fscores.env[[g]])) {
+    alig.dat[ idx[[g]], fs] <- fscores.env[[g]][ , fs]
+  }
+}
+
+describe(alig.dat$F.env)
+```
+## Write the data to drive
+
+```{r}
+write.csv2(alig.dat,"alig.dat.csv")
+
+```
+
+

@@ -1,6 +1,10 @@
 ---
 title: 'Exploratory analysis: covariate moderation'
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
 ---
 
 # Exploratory analyses for moderators

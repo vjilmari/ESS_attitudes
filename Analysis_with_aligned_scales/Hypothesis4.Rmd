@@ -1,0 +1,92 @@
+---
+title: "Hypothesis 4"
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
+---
+
+
+
+# Hypothesis 4: The strength of the association between environment and refugee attitudes is stronger among those who voted for pro-environment or anti-immigration parties in the previous national elections
+
+### Model 1: without interactions (only main effects, combine H1 and H2 final models in terms of predictors)
+
+```{r}
+H4.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                all.parties.lvl2,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+isSingular(H4.mod1)
+(FE.H4.mod1<-getFE(H4.mod1))
+(VC.H4.mod1<-getVC(H4.mod1))
+
+
+```
+
+\newpage
+
+### Model 2: Cross-level interaction between environmental attitudes and voting group categories
+
+```{r}
+H4.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H4.mod2)
+anova(H4.mod1,H4.mod2)
+
+(FE.H4.mod2<-getFE(H4.mod2))
+(VC.H4.mod2<-getVC(H4.mod2))
+
+```
+
+\newpage
+
+#### Marginal effect for pro-environment and anti-immigration voters
+
+```{r message=FALSE}
+H4.mod2.trends<-emtrends(H4.mod2,specs = c("all.parties.lvl2"),var=c("environ.lvl1"))
+(H4.mod2.trends.tab<-data.frame(H4.mod2.trends))
+
+
+H4.mod2.trends.tab$p<-
+  2*(1-pnorm(abs(H4.mod2.trends.tab$environ.lvl1.trend/
+                   H4.mod2.trends.tab$SE)))
+H4.mod2.trends.tab$adj.p<-
+  p.adjust(H4.mod2.trends.tab$p,method="holm")
+
+H4.mod2.trends.tab<-
+  cbind(group=H4.mod2.trends.tab[,1],
+      round(H4.mod2.trends.tab[,c(2,3)],2),
+      round(H4.mod2.trends.tab[,c(7,8)],4),
+      round(H4.mod2.trends.tab[,c(5,6)],2))
+H4.mod2.trends.tab
+
+write.csv2(H4.mod2.trends.tab,"H4.mod2.trends.tab.csv")
+
+#contrast between anti-immigration and pro-environment
+(H4.contrast<-data.frame(pairs(H4.mod2.trends, exclude = c(2:9),reverse=T)))
+#contrast for all groups against mean of other groups
+contrast(H4.mod2.trends, "del.eff", by = NULL,adjust=c("none"))
+#contrast for three voting groups
+(H4.more.contrasts<-data.frame(pairs(H4.mod2.trends, 
+         exclude=c(2:8), by = NULL,adjust=c("none"),reverse=T)))
+
+
+
+```
+
+
+
+\newpage

@@ -50,7 +50,7 @@ sessionInfo()
 ```
 ## R version 3.6.3 (2020-02-29)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
-## Running under: Windows 10 x64 (build 18362)
+## Running under: Windows 10 x64 (build 17763)
 ## 
 ## Matrix products: default
 ## 
@@ -62,22 +62,21 @@ sessionInfo()
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] merTools_0.5.0  arm_1.10-1      MASS_7.3-51.5   metafor_2.4-0   ggplot2_3.3.0   emmeans_1.4.5   psych_1.9.12.31
+##  [1] merTools_0.5.0  arm_1.10-1      MASS_7.3-51.5   metafor_2.4-0   ggplot2_3.3.2   emmeans_1.4.6   psych_1.9.12.31
 ##  [8] dplyr_0.8.5     lmerTest_3.1-2  lme4_1.1-23     Matrix_1.2-18  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.4.6        mvtnorm_1.1-0       lattice_0.20-38     tidyr_1.0.2         zoo_1.8-7           foreach_1.5.0      
-##  [7] assertthat_0.2.1    digest_0.6.25       mime_0.9            R6_2.4.1            backports_1.1.6     evaluate_0.14      
-## [13] coda_0.19-3         pillar_1.4.3        rlang_0.4.5         multcomp_1.4-13     minqa_1.2.4         nloptr_1.2.2.1     
+##  [1] Rcpp_1.0.4.6        mvtnorm_1.1-0       lattice_0.20-38     tidyr_1.1.0         zoo_1.8-7           assertthat_0.2.1   
+##  [7] digest_0.6.25       foreach_1.5.0       mime_0.9            R6_2.4.1            backports_1.1.6     evaluate_0.14      
+## [13] coda_0.19-3         pillar_1.4.3        rlang_0.4.6         multcomp_1.4-13     minqa_1.2.4         nloptr_1.2.2.1     
 ## [19] rmarkdown_2.1       splines_3.6.3       statmod_1.4.34      stringr_1.4.0       munsell_0.5.0       shiny_1.4.0.2      
-## [25] broom_0.5.5         httpuv_1.5.2        compiler_3.6.3      numDeriv_2016.8-1.1 xfun_0.13           pkgconfig_2.0.3    
-## [31] mnormt_1.5-6        htmltools_0.4.0     tidyselect_1.0.0    tibble_3.0.0        codetools_0.2-16    fansi_0.4.1        
-## [37] later_1.0.0         crayon_1.3.4        withr_2.1.2         grid_3.6.3          nlme_3.1-144        xtable_1.8-4       
-## [43] gtable_0.3.0        lifecycle_0.2.0     magrittr_1.5        scales_1.1.0        estimability_1.3    cli_2.0.2          
-## [49] stringi_1.4.6       promises_1.1.0      generics_0.0.2      ellipsis_0.3.0      vctrs_0.2.4         boot_1.3-24        
-## [55] sandwich_2.5-1      blme_1.0-4          TH.data_1.0-10      iterators_1.0.12    tools_3.6.3         glue_1.4.0         
-## [61] purrr_0.3.3         fastmap_1.0.1       abind_1.4-5         parallel_3.6.3      survival_3.1-8      yaml_2.2.0         
-## [67] colorspace_1.4-1    knitr_1.28
+## [25] broom_0.5.6         httpuv_1.5.2        compiler_3.6.3      numDeriv_2016.8-1.1 xfun_0.13           pkgconfig_2.0.3    
+## [31] mnormt_1.5-6        htmltools_0.4.0     tidyselect_1.1.0    tibble_3.0.1        codetools_0.2-16    later_1.0.0        
+## [37] crayon_1.3.4        withr_2.2.0         grid_3.6.3          nlme_3.1-144        xtable_1.8-4        gtable_0.3.0       
+## [43] lifecycle_0.2.0     magrittr_1.5        scales_1.1.1        estimability_1.3    stringi_1.4.6       promises_1.1.0     
+## [49] ellipsis_0.3.1      vctrs_0.3.0         generics_0.0.2      boot_1.3-24         sandwich_2.5-1      blme_1.0-4         
+## [55] TH.data_1.0-10      iterators_1.0.12    tools_3.6.3         glue_1.4.1          purrr_0.3.4         fastmap_1.0.1      
+## [61] abind_1.4-5         parallel_3.6.3      survival_3.1-8      yaml_2.2.1          colorspace_1.4-1    knitr_1.28
 ```
 
 \newpage
@@ -435,6 +434,143 @@ describe(dat$engagement.vgmc,fast=T)
 dat$engagement.lvl1<-dat$engagement.vgmc
 dat$engagement.lvl2<-dat$engagement.voting.group
 dat$engagement.lvl3<-dat$engagement.cntry
+```
+
+\newpage
+
+#### Centering Political Interest Item (for exploratory analysis)
+
+
+```r
+#rename the variable (this will replace the previous item with same name)
+dat$polintr<-dat$polintr.R
+
+#descriptive statistics
+psych::describe(dat$polintr,fast=T)
+```
+
+```
+##    vars     n mean   sd min max range se
+## X1    1 36831 2.42 0.91   1   4     3  0
+```
+
+```r
+#grand mean center
+dat$polintr.gmc<-dat$polintr-mean(dat$polintr,na.rm=T)
+
+#obtain dataframe with country means and add to data
+
+polintr.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(polintr.cntry=mean(polintr.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polintr.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$polintr.cntrymc<-dat$polintr.gmc-dat$polintr.cntry
+
+#obtain dataframe with voting group means and add to data
+
+polintr.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(polintr.voting.group=mean(polintr.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polintr.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$polintr.vgmc<-dat$polintr.cntrymc-dat$polintr.voting.group
+
+#describe the centered variable
+
+describe(dat$polintr.vgmc,fast=T)
+```
+
+```
+##    vars     n mean   sd   min  max range se
+## X1    1 36831    0 0.81 -2.19 2.65  4.85  0
+```
+
+```r
+#rename as lvl1, lvl2, and lvl3
+
+dat$polintr.lvl1<-dat$polintr.vgmc
+dat$polintr.lvl2<-dat$polintr.voting.group
+dat$polintr.lvl3<-dat$polintr.cntry
+```
+
+
+\newpage
+
+#### Centering "Time used for consuming political media" (for exploratory analysis)
+
+
+```r
+#rename the variable
+dat$polnews<-dat$nwspol.4
+
+#descriptive statistics
+psych::describe(dat$polnews,fast=T)
+```
+
+```
+##    vars     n mean   sd min max range   se
+## X1    1 36590 2.57 1.05   1   4     3 0.01
+```
+
+```r
+#grand mean center
+dat$polnews.gmc<-dat$polnews-mean(dat$polnews,na.rm=T)
+
+#obtain dataframe with country means and add to data
+
+polnews.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(polnews.cntry=mean(polnews.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polnews.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$polnews.cntrymc<-dat$polnews.gmc-dat$polnews.cntry
+
+#obtain dataframe with voting group means and add to data
+
+polnews.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(polnews.voting.group=mean(polnews.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=polnews.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$polnews.vgmc<-dat$polnews.cntrymc-dat$polnews.voting.group
+
+#describe the centered variable
+
+describe(dat$polnews.vgmc,fast=T)
+```
+
+```
+##    vars     n mean sd   min max range   se
+## X1    1 36590    0  1 -2.19 2.6  4.79 0.01
+```
+
+```r
+#rename as lvl1, lvl2, and lvl3
+
+dat$polnews.lvl1<-dat$polnews.vgmc
+dat$polnews.lvl2<-dat$polnews.voting.group
+dat$polnews.lvl3<-dat$polnews.cntry
 ```
 
 \newpage
@@ -1135,72 +1271,36 @@ country.effs.dat<-
     slope_without_covs=coefficients(
       slope.mod.no.cov)$cntry[,"environ.lvl1"],
     cntry.cor.dat[,2:4])
-country.effs.dat
-```
 
-```
-##    cntry slope_with_covs slope_without_covs observed_r  partial_r    n
-## 1     AT      0.16388921         0.17073407 0.25596053 0.22287125 1934
-## 2     BE      0.13561055         0.14776506 0.17729252 0.14631334 1746
-## 3     CH      0.12415313         0.13494604 0.21389146 0.17601223 1469
-## 4     CZ      0.13937493         0.14235903 0.17395316 0.16591222 2071
-## 5     DE      0.18286129         0.19258682 0.24433787 0.23353039 2791
-## 6     EE      0.07728714         0.08881514 0.05001522 0.04719782 1927
-## 7     ES      0.10525890         0.11563744 0.15432815 0.13903233 1666
-## 8     FI      0.15671522         0.16971104 0.23493567 0.22299268 1840
-## 9     FR      0.17072139         0.17996195 0.20552407 0.19741954 1995
-## 10    GB      0.14359012         0.15307094 0.20728022 0.18157755 1856
-## 11    HU      0.12194688         0.12843216 0.17372436 0.17371641 1341
-## 12    IE      0.14056993         0.15218857 0.19521566 0.17388402 2591
-## 13    IT      0.11174664         0.11988893 0.14321699 0.13573951 2177
-## 14    LT      0.08476625         0.09240974 0.09612563 0.09510338 1759
-## 15    NL      0.09383763         0.10475537 0.15260881 0.14788809 1620
-## 16    NO      0.13225738         0.14956688 0.26483270 0.22781088 1530
-## 17    PL      0.05053810         0.06035134 0.02603599 0.02285898 1495
-## 18    PT      0.07681183         0.09485497 0.11228764 0.08639693 1214
-## 19    SE      0.13932739         0.15254652 0.25416405 0.22308459 1487
-## 20    SI      0.12051011         0.13280999 0.17475936 0.15300594 1231
-```
 
-```r
-write.csv2(country.effs.dat,"associations_within_countries.csv")
-
-#calculate the meta-analytical estimate for partial correlation
 country.effs.dat$partial_r.se<-1/sqrt(country.effs.dat$n-3)
-rma.uni(yi=transf.rtoz(country.effs.dat$partial_r),
-        sei=country.effs.dat$partial_r.se)
-```
+country.effs.dat$country<-
+  c("Austria",
+    "Belgium",
+    "Switzerland",
+    "Czech Republic",
+    "Germany",
+    "Estonia",
+    "Spain",
+    "Finland",
+    "France",
+    "Great Britain",
+    "Hungary",
+    "Ireland",
+    "Italy",
+    "Lithuania",
+    "Netherlands",
+    "Norway",
+    "Poland",
+    "Portugal",
+    "Sweden",
+    "Slovenia")
 
-```
-## 
-## Random-Effects Model (k = 20; tau^2 estimator: REML)
-## 
-## tau^2 (estimated amount of total heterogeneity): 0.0031 (SE = 0.0012)
-## tau (square root of estimated tau^2 value):      0.0555
-## I^2 (total heterogeneity / total variability):   84.59%
-## H^2 (total variability / sampling variability):  6.49
-## 
-## Test for Heterogeneity:
-## Q(df = 19) = 122.1403, p-val < .0001
-## 
-## Model Results:
-## 
-## estimate      se     zval    pval   ci.lb   ci.ub 
-##   0.1610  0.0135  11.8871  <.0001  0.1344  0.1875  *** 
-## 
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
 
-```r
-#back-transform to r
-transf.ztor(0.1610)
-```
+country.effs.dat <- country.effs.dat[order(country.effs.dat$country),]
 
+write.csv2(country.effs.dat,"associations_within_countries.csv")
 ```
-## [1] 0.1596232
-```
-
 
 \newpage
 
@@ -1304,6 +1404,396 @@ voting.group.slopes.dat<-left_join(x=voting.group.effs.dat.w.country,
 write.csv2(voting.group.slopes.dat,"associations_within_voting_groups.csv")
 ```
 
+
+\newpage
+
+##### Print a forest plot
+
+
+```r
+#Create forest plot of country estimates
+
+library(dmetar)
+```
+
+```
+## Extensive documentation for the dmetar package can be found at: 
+##  www.bookdown.org/MathiasHarrer/Doing_Meta_Analysis_in_R/
+```
+
+```r
+library(meta)
+```
+
+```
+## Loading 'meta' package (version 4.13-0).
+## Type 'help(meta)' for a brief overview.
+```
+
+```r
+# country-level
+#nrow(country.effs.dat)
+#col.vect.cntry<-rep(c("#4CC542","#05B3D8"),each=10)
+
+m <- metacor(cor=partial_r,
+             n=n,
+             data=country.effs.dat,
+             studlab=country.effs.dat$country,
+             comb.fixed = FALSE,
+             comb.random = TRUE,
+             prediction=TRUE,
+             sm="ZCOR",
+             backtransf=TRUE,
+             level=.95)
+m
+```
+
+```
+##                   COR            95%-CI %W(random)
+## Austria        0.2229 [ 0.1801; 0.2648]        5.1
+## Belgium        0.1463 [ 0.1001; 0.1919]        5.0
+## Czech Republic 0.1659 [ 0.1237; 0.2075]        5.1
+## Estonia        0.0472 [ 0.0025; 0.0917]        5.1
+## Finland        0.2230 [ 0.1791; 0.2660]        5.1
+## France         0.1974 [ 0.1549; 0.2392]        5.1
+## Germany        0.2335 [ 0.1981; 0.2683]        5.3
+## Great Britain  0.1816 [ 0.1372; 0.2252]        5.1
+## Hungary        0.1737 [ 0.1213; 0.2252]        4.8
+## Ireland        0.1739 [ 0.1363; 0.2110]        5.3
+## Italy          0.1357 [ 0.0943; 0.1767]        5.2
+## Lithuania      0.0951 [ 0.0486; 0.1412]        5.0
+## Netherlands    0.1479 [ 0.0999; 0.1952]        5.0
+## Norway         0.2278 [ 0.1797; 0.2748]        4.9
+## Poland         0.0229 [-0.0279; 0.0735]        4.9
+## Portugal       0.0864 [ 0.0303; 0.1420]        4.7
+## Slovenia       0.1530 [ 0.0980; 0.2071]        4.7
+## Spain          0.1390 [ 0.0916; 0.1858]        5.0
+## Sweden         0.2231 [ 0.1742; 0.2708]        4.9
+## Switzerland    0.1760 [ 0.1260; 0.2251]        4.9
+## 
+## Number of studies combined: k = 20
+## 
+##                         COR           95%-CI     z  p-value
+## Random effects model 0.1596 [0.1338; 0.1853] 11.94 < 0.0001
+## Prediction interval         [0.0415; 0.2733]               
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0031 [0.0016; 0.0072]; tau = 0.0552 [0.0395; 0.0851];
+##  I^2 = 84.4% [77.2%; 89.4%]; H = 2.54 [2.09; 3.07]
+## 
+## Test of heterogeneity:
+##       Q d.f.  p-value
+##  122.14   19 < 0.0001
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - DerSimonian-Laird estimator for tau^2
+## - Jackson method for confidence interval of tau^2 and tau
+## - Fisher's z transformation of correlations
+```
+
+```r
+grDevices::pdf(file = "forestplot.pdf",family="sans") 
+
+forest.m<-meta::forest(m,overall=T,
+                       #layout = "JAMA",
+                       prediction=F,
+                       leftlabs=c("Country","n"),
+                       print.I2=F,
+                       print.tau2=F,
+                       het.stat=F,
+                       overall.hetstat=F,
+                       text.random="Overall",
+                       #weights=F,
+                       #label.right="Partial Correlation Coefficient",
+                       #bottom.lr=F
+                       rightcols=c("effect", "ci"),
+                       rightlabs = c("","95% CI"),
+                       smlab = "Partial Correlation Coefficient",
+                       weight.study="random"#,
+                       #col.study=col.vect.cntry,
+                       #col.square=col.vect.cntry
+                       
+)
+
+graphics.off()
+
+
+# print separate plots for voting groups within each country
+
+
+cntry.vect<-as.character(unique(country.effs.dat$cntry))
+
+#drop groups smaller than 6
+voting.group.plot.dat<-voting.group.slopes.dat %>%
+  filter(n.y>4)
+
+voting.group.plot.dat$color<-ifelse(voting.group.plot.dat$anti.imm==1,
+                                    "#05B3D8",
+                                    ifelse(voting.group.plot.dat$pro.env==1,
+                                           "#4CC542","darkgray"))
+
+table(voting.group.plot.dat$color)
+```
+
+```
+## 
+##  #05B3D8  #4CC542 darkgray 
+##       31       28      240
+```
+
+```r
+pdf("forest_for_each_country.pdf",family = "sans",width = 12,height=10)
+
+for (i in cntry.vect){
+  
+  dat.temp<-voting.group.plot.dat[grepl(paste0(i,": "),voting.group.plot.dat$voting.group),]
+  
+  m.temp <- metacor(cor=observed_r,
+                    n=n.y,
+                    data=dat.temp,
+                    studlab=dat.temp[,"voting.group"],
+                    comb.fixed = FALSE,
+                    comb.random = TRUE,
+                    prediction=TRUE,
+                    sm="ZCOR",
+                    backtransf=TRUE,
+                    level=.95)
+  
+  forest.m.temp<-meta::forest(m.temp,overall=T,
+                              prediction=F,
+                              leftlabs=c("Voting group","n"),
+                              print.I2=F,
+                              print.tau2=F,
+                              het.stat=F,
+                              overall.hetstat=F,
+                              text.random="Overall",
+                              rightcols=c("effect", "ci"),
+                              rightlabs = c("","95% CI"),
+                              smlab = "Correlation Coefficient",
+                              weight.study="random",
+                              xlim=c(-0.8,0.8),
+                              col.study=dat.temp[,"color"],
+                              col.square=dat.temp[,"color"])
+  
+}
+
+
+dev.off()
+```
+
+```
+## null device 
+##           1
+```
+
+```r
+# print separate plots for anti-immigration parties
+
+
+#drop groups smaller than 6 and filter only anti-refugee parties
+anti.imm.group.plot.dat<-voting.group.slopes.dat %>%
+  filter(n.y>4,anti.imm==1)
+
+anti.imm.group.plot.dat$color<-"#05B3D8"
+
+pdf("forest_for_anti_refugee.pdf",family = "sans",width = 12,height=10)
+
+m.anti.imm <- metacor(cor=observed_r,
+                    n=n.y,
+                    data=anti.imm.group.plot.dat,
+                    studlab=anti.imm.group.plot.dat[,"voting.group"],
+                    comb.fixed = FALSE,
+                    comb.random = TRUE,
+                    prediction=TRUE,
+                    sm="ZCOR",
+                    backtransf=TRUE,
+                    level=.95)
+
+m.anti.imm
+```
+
+```
+##                                                                       COR            95%-CI %W(random)
+## AT: BZÖ                                                            0.0000 [-0.6296; 0.6296]        0.3
+## AT: FPÖ                                                            0.2587 [ 0.1373; 0.3724]        5.8
+## BE: N-VA                                                          -0.0320 [-0.1533; 0.0902]        5.9
+## BE: Parti Populaire                                               -0.1021 [-0.9030; 0.8574]        0.1
+## BE: Vlaams Belang                                                  0.1874 [-0.1854; 0.5130]        1.2
+## CH: Swiss People's Party                                           0.0096 [-0.1531; 0.1718]        4.4
+## CZ: ODS                                                            0.1914 [-0.0042; 0.3729]        3.4
+## CZ: Usvit                                                          0.3619 [ 0.0379; 0.6171]        1.5
+## DE: AfD                                                           -0.0016 [-0.2598; 0.2568]        2.2
+## DE: NPD                                                            0.1633 [-0.5197; 0.7190]        0.3
+## EE: Eesti Konservatiivne Rahvaerakond                              0.0235 [-0.2127; 0.2570]        2.6
+## ES: Partido Popular - PP                                           0.0959 [-0.0145; 0.2041]        6.5
+## FI: True Finns                                                     0.1420 [-0.0007; 0.2791]        5.1
+## FR: FN (Front National)                                            0.2846 [ 0.1110; 0.4413]        3.9
+## FR: MPF (Mouvement pour la France)                                -0.2187 [-0.6029; 0.2478]        0.8
+## FR: UMP (Union pour un Mouvement Populaire)                        0.1587 [ 0.0463; 0.2672]        6.3
+## GB: Conservative                                                   0.2133 [ 0.1269; 0.2964]        7.6
+## GB: Democratic Unionist Party (nir)                                0.1931 [-0.6552; 0.8260]        0.2
+## GB: UK Independence Party                                          0.0790 [-0.1134; 0.2658]        3.6
+## HU: Fidesz - KDNP (Fidesz – Magyar Polgári Szövetség Keresztényd)  0.2420 [ 0.1583; 0.3223]        7.6
+## HU: Jobbik (Jobbik Magyarországért Mozgalom)                       0.2087 [-0.0033; 0.4028]        3.1
+## IT: Fratelli d'Italia                                              0.0080 [-0.3661; 0.3800]        1.1
+## IT: Lega Nord                                                     -0.1013 [-0.3209; 0.1286]        2.8
+## IT: Popolo delle Libertà (PdL)                                     0.2035 [ 0.0114; 0.3812]        3.5
+## NL: Party for Freedom                                             -0.0299 [-0.2270; 0.1695]        3.4
+## NL: Reformed Political Party                                       0.4091 [-0.0151; 0.7085]        0.9
+## NO: Progress Party (FRP)                                           0.1942 [ 0.0163; 0.3602]        3.9
+## PL: KORWIN                                                        -0.1311 [-0.4493; 0.2167]        1.4
+## PL: Kukiz'15                                                       0.0307 [-0.1677; 0.2268]        3.4
+## SE: Sverigedemokraterna                                            0.0849 [-0.1221; 0.2847]        3.2
+## SI: SDS - Slovenska demokratska stranka                            0.1381 [-0.0343; 0.3024]        4.1
+## 
+## Number of studies combined: k = 31
+## 
+##                         COR            95%-CI    z  p-value
+## Random effects model 0.1293 [ 0.0855; 0.1727] 5.74 < 0.0001
+## Prediction interval         [-0.0180; 0.2711]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0047 [0.0000; 0.0136]; tau = 0.0687 [0.0000; 0.1164];
+##  I^2 = 35.9% [0.8%; 58.6%]; H = 1.25 [1.00; 1.55]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  46.83   30  0.0259
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - DerSimonian-Laird estimator for tau^2
+## - Jackson method for confidence interval of tau^2 and tau
+## - Fisher's z transformation of correlations
+```
+
+```r
+forest.m.anti.imm<-meta::forest(m.anti.imm,overall=T,
+                              prediction=F,
+                              leftlabs=c("Voting group","n"),
+                              print.I2=F,
+                              print.tau2=F,
+                              het.stat=F,
+                              overall.hetstat=F,
+                              text.random="Overall",
+                              rightcols=c("effect", "ci"),
+                              rightlabs = c("","95% CI"),
+                              smlab = "Correlation Coefficient",
+                              weight.study="random",
+                              xlim=c(-0.8,0.8),
+                              col.study=anti.imm.group.plot.dat[,"color"],
+                              col.square=anti.imm.group.plot.dat[,"color"])
+  
+
+dev.off()
+```
+
+```
+## null device 
+##           1
+```
+
+```r
+#drop groups smaller than 6 and filter only pro-environment parties
+pro.env.group.plot.dat<-voting.group.slopes.dat %>%
+  filter(n.y>4,pro.env==1)
+
+pro.env.group.plot.dat$color<-"#4CC542"
+
+pdf("forest_for_pro_environment.pdf",family = "sans",width = 12,height=10)
+
+m.pro.env <- metacor(cor=observed_r,
+                      n=n.y,
+                      data=pro.env.group.plot.dat,
+                      studlab=pro.env.group.plot.dat[,"voting.group"],
+                      comb.fixed = FALSE,
+                      comb.random = TRUE,
+                      prediction=TRUE,
+                      sm="ZCOR",
+                      backtransf=TRUE,
+                      level=.95)
+
+m.pro.env
+```
+
+```
+##                                                        COR            95%-CI %W(random)
+## AT: Grüne                                           0.2685 [ 0.1276; 0.3987]        6.6
+## BE: Ecolo                                           0.1091 [-0.1489; 0.3533]        3.7
+## BE: Groen!                                         -0.0325 [-0.2532; 0.1914]        4.4
+## CH: Green Party                                     0.0892 [-0.1601; 0.3278]        3.9
+## CH: Social Democratic Party                         0.3476 [ 0.1866; 0.4904]        5.8
+## DE: Bündnis 90/ Die Grünen                          0.1805 [ 0.0545; 0.3007]        7.2
+## EE: Erakond Eestimaa Rohelised                      0.4930 [-0.1128; 0.8316]        0.8
+## FI: Green League                                    0.1873 [ 0.0351; 0.3311]        6.3
+## FR: Autres mouvements écologistes                  -0.0066 [-0.4478; 0.4372]        1.5
+## FR: EELV (Europe Ecologie Les Verts)               -0.0099 [-0.2632; 0.2446]        3.7
+## GB: Green Party                                     0.3931 [ 0.0840; 0.6332]        2.7
+## HU: LMP (Lehet Más A Politika)                     -0.0781 [-0.5258; 0.4035]        1.3
+## IE: Green Party                                     0.1208 [-0.2797; 0.4854]        1.9
+## IT: Movimento 5 Stelle                              0.3121 [ 0.1884; 0.4260]        7.1
+## IT: Sinistra Ecologia e Libertà (SEL)               0.3445 [-0.0586; 0.6510]        1.9
+## LT: Lithuanian Greens Party (LZP)                   0.3536 [-0.4676; 0.8472]        0.5
+## LT: Lithuanian Peasant and Greens Union (LVZS)      0.1456 [ 0.0199; 0.2668]        7.2
+## NL: Green Left                                      0.0306 [-0.2229; 0.2803]        3.8
+## NL: Party for the Animals                          -0.2584 [-0.5660; 0.1123]        2.2
+## NO: Green Party (MDG)                              -0.0569 [-0.3876; 0.2868]        2.4
+## NO: Liberal Party (V)                               0.0484 [-0.2303; 0.3197]        3.3
+## NO: Socialist Left Party (SV)                       0.1245 [-0.1336; 0.3669]        3.7
+## PT: B.E. - Bloco de Esquerda                        0.1221 [-0.1338; 0.3628]        3.8
+## PT: PAN - Pessoas-Animais-Natureza                 -0.0356 [-0.6222; 0.5766]        0.8
+## SE: FI (Feministiskt initiativ)                     0.3334 [-0.0453; 0.6283]        2.1
+## SE: Miljöpartiet de gröna                           0.4540 [ 0.2779; 0.6006]        4.9
+## SE: Vänsterpartiet                                  0.4020 [ 0.1985; 0.5722]        4.4
+## SI: ZL - Združena levica (DSD, IDS in Stranka TRS)  0.0579 [-0.3294; 0.4285]        2.0
+## 
+## Number of studies combined: k = 28
+## 
+##                         COR            95%-CI    z  p-value
+## Random effects model 0.1826 [ 0.1212; 0.2426] 5.76 < 0.0001
+## Prediction interval         [-0.0311; 0.3804]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0100 [0.0000; 0.0360]; tau = 0.1000 [0.0000; 0.1898];
+##  I^2 = 41.3% [7.8%; 62.6%]; H = 1.31 [1.04; 1.64]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  46.01   27  0.0127
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - DerSimonian-Laird estimator for tau^2
+## - Jackson method for confidence interval of tau^2 and tau
+## - Fisher's z transformation of correlations
+```
+
+```r
+forest.m.pro.env<-meta::forest(m.pro.env,overall=T,
+                                prediction=F,
+                                leftlabs=c("Voting group","n"),
+                                print.I2=F,
+                                print.tau2=F,
+                                het.stat=F,
+                                overall.hetstat=F,
+                                text.random="Overall",
+                                rightcols=c("effect", "ci"),
+                                rightlabs = c("","95% CI"),
+                                smlab = "Correlation Coefficient",
+                                weight.study="random",
+                                xlim=c(-0.8,0.8),
+                                col.study=pro.env.group.plot.dat[,"color"],
+                                col.square=pro.env.group.plot.dat[,"color"])
+
+
+dev.off()
+```
+
+```
+## null device 
+##           1
+```
 
 \newpage
 
@@ -3918,6 +4408,8 @@ contrast(H4.mod2.trends, "del.eff", by = NULL,adjust=c("none"))
 
 
 
+
+
 # Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
 
 ### Model 1: without interactions (only main effects)
@@ -4992,1158 +5484,6 @@ contrast(H5.mod6.trends, "del.eff", by = NULL,adjust=c("holm"))
 ## 2 Pro-environment party - Anti-immigration party  0.047018964 0.03539014 Inf  1.3285895 0.36796688
 ## 3            Pro-environment party - Other party -0.003046823 0.03025143 Inf -0.1007167 0.91977537
 ```
-
-
-
-\newpage
-
-
-
-# Exploratory analyses for moderators
-
-## Does the association vary by age?
-
-### Center the age variable
-
-
-```r
-describe(dat$age)
-```
-
-```
-##    vars     n  mean   sd median trimmed   mad    min   max range skew kurtosis  se
-## X1    1 35740 -0.09 18.4   0.64   -0.17 22.24 -34.36 50.64    85 0.02    -0.91 0.1
-```
-
-```r
-#already grand-mean centered
-
-#obtain dataframe with country means and add to data
-
-age.cntry<-dat %>%
-  group_by(cntry) %>%
-  summarize(age.cntry=mean(age,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=age.cntry,
-               by=c("cntry"))
-
-#center individuals around country means
-
-dat$age.cntrymc<-dat$age-dat$age.cntry
-
-#obtain dataframe with voting group means and add to data
-
-age.voting.group<-dat %>%
-  group_by(voting.group) %>%
-  summarize(age.voting.group=mean(age.cntrymc,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=age.voting.group,
-               by=c("voting.group"))
-
-#center individuals around voting group means
-
-dat$age.vgmc<-dat$age.cntrymc-dat$age.voting.group
-
-#describe the variable
-
-describe(dat$age.vgmc)
-```
-
-```
-##    vars     n mean    sd median trimmed   mad    min   max range skew kurtosis   se
-## X1    1 35740    0 16.12  -0.02   -0.18 17.63 -41.78 55.52  97.3 0.09    -0.56 0.09
-```
-
-```r
-#rename as lvl1, lvl2, and lvl3
-
-dat$age.lvl1<-dat$age.vgmc
-dat$age.lvl2<-dat$age.voting.group
-dat$age.lvl3<-dat$age.cntry
-```
-
-\newpage
-
-### Model 1 (Same as H1 selected model but with centered age)
-
-* Divide age variable by 10 to give interpretation by a decade
-
-
-```r
-dat$age.lvl1.10<-dat$age.lvl1/10
-
-EX3.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                gender+occup+educ+resid+
-                 age.lvl1.10+
-                environ.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-
-isSingular(EX3.mod1)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-(VC.EX3.mod1<-getVC(EX3.mod1))
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.30440667  0.0926634196
-## 2 voting.group environ.lvl1         <NA>  0.04306793  0.0018548466
-## 3 voting.group  (Intercept) environ.lvl1  0.11749126  0.0015403298
-## 4        cntry  (Intercept)         <NA>  0.49917568  0.2491763637
-## 5        cntry environ.lvl1         <NA>  0.04008438  0.0016067573
-## 6        cntry  (Intercept) environ.lvl1 -0.04834386 -0.0009673194
-## 7     Residual         <NA>         <NA>  1.02911869  1.0590852861
-```
-
-```r
-getFE(EX3.mod1)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.07       0.14    49.52    0.51 0.615 -0.21  0.36
-## gender                                                      0.06       0.01 35582.65    4.68 0.000  0.03  0.08
-## occupClerical support workers                              -0.04       0.09 35512.24   -0.47 0.640 -0.21  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35522.70   -0.76 0.446 -0.24  0.11
-## occupElementary occupations                                 0.01       0.09 35527.09    0.14 0.892 -0.16  0.19
-## occupManagers                                              -0.02       0.09 35509.88   -0.22 0.824 -0.19  0.15
-## occupOther: Not in paid work                                0.14       0.09 35700.60    1.53 0.126 -0.04  0.32
-## occupPlant and machine operators, and assemblers           -0.06       0.09 35519.71   -0.73 0.464 -0.24  0.11
-## occupProfessionals                                          0.07       0.09 35514.53    0.78 0.434 -0.10  0.24
-## occupRetired                                               -0.04       0.10 35505.90   -0.40 0.687 -0.23  0.15
-## occupService and sales workers                             -0.04       0.09 35521.63   -0.43 0.671 -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35525.96   -0.63 0.530 -0.24  0.12
-## occupTechnicians and associate professionals               -0.03       0.09 35511.65   -0.37 0.710 -0.20  0.14
-## occupUnemployed                                            -0.02       0.11 35547.75   -0.20 0.840 -0.23  0.19
-## educ                                                        0.01       0.00 35715.13    7.76 0.000  0.01  0.02
-## resid                                                      -0.06       0.01 35639.20   -5.25 0.000 -0.08 -0.04
-## age.lvl1.10                                                 0.02       0.00 35528.89    5.25 0.000  0.01  0.03
-## environ.lvl1                                                0.12       0.01    19.40   11.52 0.000  0.10  0.15
-```
-
-
-\newpage
-
-### Model 2 (interaction between age and environmental attitudes)
-
-
-```r
-EX3.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                gender+occup+educ+resid+
-                 age.lvl1.10+
-                environ.lvl1+
-                 age.lvl1.10:environ.lvl1,
-                 data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-anova(EX3.mod1,EX3.mod2)
-```
-
-```
-## Data: dat
-## Models:
-## EX3.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX3.mod1:     gender + occup + educ + resid + age.lvl1.10 + environ.lvl1
-## EX3.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX3.mod2:     gender + occup + educ + resid + age.lvl1.10 + environ.lvl1 + 
-## EX3.mod2:     age.lvl1.10:environ.lvl1
-##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)   
-## EX3.mod1   25 104282 104494 -52116   104232                        
-## EX3.mod2   26 104275 104495 -52111   104223 9.3761  1   0.002198 **
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
-isSingular(EX3.mod2)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-(VC.EX3.mod2<-getVC(EX3.mod2))
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.30426074  0.0925745987
-## 2 voting.group environ.lvl1         <NA>  0.04295373  0.0018450227
-## 3 voting.group  (Intercept) environ.lvl1  0.12759011  0.0016674922
-## 4        cntry  (Intercept)         <NA>  0.49911415  0.2491149305
-## 5        cntry environ.lvl1         <NA>  0.04005143  0.0016041172
-## 6        cntry  (Intercept) environ.lvl1 -0.04815853 -0.0009627004
-## 7     Residual         <NA>         <NA>  1.02899151  1.0588235363
-```
-
-```r
-getFE(EX3.mod2)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.07       0.14    49.52    0.51 0.614 -0.21  0.36
-## gender                                                      0.05       0.01 35582.46    4.66 0.000  0.03  0.08
-## occupClerical support workers                              -0.04       0.09 35512.30   -0.48 0.632 -0.22  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35522.74   -0.77 0.443 -0.24  0.10
-## occupElementary occupations                                 0.01       0.09 35527.15    0.12 0.902 -0.16  0.18
-## occupManagers                                              -0.02       0.09 35509.94   -0.23 0.815 -0.19  0.15
-## occupOther: Not in paid work                                0.14       0.09 35700.95    1.50 0.134 -0.04  0.31
-## occupPlant and machine operators, and assemblers           -0.07       0.09 35519.77   -0.74 0.458 -0.24  0.11
-## occupProfessionals                                          0.07       0.09 35514.57    0.76 0.447 -0.10  0.24
-## occupRetired                                               -0.04       0.10 35505.92   -0.43 0.665 -0.23  0.15
-## occupService and sales workers                             -0.04       0.09 35521.68   -0.44 0.661 -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35526.03   -0.64 0.525 -0.24  0.12
-## occupTechnicians and associate professionals               -0.03       0.09 35511.69   -0.38 0.702 -0.20  0.14
-## occupUnemployed                                            -0.02       0.11 35547.78   -0.21 0.837 -0.23  0.19
-## educ                                                        0.01       0.00 35716.30    7.84 0.000  0.01  0.02
-## resid                                                      -0.06       0.01 35639.39   -5.24 0.000 -0.08 -0.04
-## age.lvl1.10                                                 0.02       0.00 35528.59    5.35 0.000  0.01  0.03
-## environ.lvl1                                                0.12       0.01    19.40   11.54 0.000  0.10  0.15
-## age.lvl1.10:environ.lvl1                                   -0.01       0.00 35544.83   -3.06 0.002 -0.01  0.00
-```
-
-
-\newpage
-
-#### Marginal effects for ages at -1SD and +1SD
-
-
-```r
-EX3.mod2.trends<-
-  emtrends(EX3.mod2,specs = c("age.lvl1.10"),var=c("environ.lvl1"),
-           at=list(age.lvl1.10=c(
-             
-             mean(dat$age.lvl1.10)-sd(dat$age.lvl1.10),
-             mean(dat$age.lvl1.10),
-             mean(dat$age.lvl1.10)+sd(dat$age.lvl1.10)
-             )))
-
-(EX3.mod2.trends.tab<-data.frame(EX3.mod2.trends))
-```
-
-```
-##     age.lvl1.10 environ.lvl1.trend         SE  df  asymp.LCL asymp.UCL
-## 1 -1.611745e+00          0.1381195 0.01171672 Inf 0.11515520 0.1610839
-## 2  1.780079e-18          0.1237155 0.01072314 Inf 0.10269849 0.1447324
-## 3  1.611745e+00          0.1093114 0.01170135 Inf 0.08637713 0.1322456
-```
-
-```r
-EX3.mod2.trends.tab$p<-
-  2*(1-pnorm(abs(EX3.mod2.trends.tab$environ.lvl1.trend/
-                   EX3.mod2.trends.tab$SE)))
-EX3.mod2.trends.tab$adj.p<-
-  p.adjust(EX3.mod2.trends.tab$p,method="holm")
-
-EX3.mod2.trends.tab<-
-  cbind(group=round(EX3.mod2.trends.tab[,1],2),
-      round(EX3.mod2.trends.tab[,c(2,3)],2),
-      round(EX3.mod2.trends.tab[,c(7,8)],4),
-      round(EX3.mod2.trends.tab[,c(5,6)],2))
-EX3.mod2.trends.tab
-```
-
-```
-##   group environ.lvl1.trend   SE p adj.p asymp.LCL asymp.UCL
-## 1 -1.61               0.14 0.01 0     0      0.12      0.16
-## 2  0.00               0.12 0.01 0     0      0.10      0.14
-## 3  1.61               0.11 0.01 0     0      0.09      0.13
-```
-
-```r
-pairs(EX3.mod2.trends,adjust="none")
-```
-
-```
-##  contrast                                 estimate      SE  df z.ratio p.value
-##  -1.61174532093322 - 1.78007855902334e-18   0.0144 0.00470 Inf 3.063   0.0022 
-##  -1.61174532093322 - 1.61174532093322       0.0288 0.00941 Inf 3.063   0.0022 
-##  1.78007855902334e-18 - 1.61174532093322    0.0144 0.00470 Inf 3.063   0.0022 
-## 
-## Results are averaged over the levels of: gender, occup, resid 
-## Degrees-of-freedom method: asymptotic
-```
-
-\newpage
-
-## Does the association vary by sex?
-
-### Center the sex variable
-
-
-```r
-describe(dat$gender)
-```
-
-```
-##    vars     n mean  sd median trimmed mad  min max range  skew kurtosis se
-## X1    1 35740 0.02 0.5    0.5    0.02   0 -0.5 0.5     1 -0.07       -2  0
-```
-
-```r
-#grand mean center
-dat$gender.gmc<-dat$gender-mean(dat$gender,na.rm=T)
-
-#obtain dataframe with country means and add to data
-
-gender.cntry<-dat %>%
-  group_by(cntry) %>%
-  summarize(gender.cntry=mean(gender.gmc,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=gender.cntry,
-               by=c("cntry"))
-
-#center individuals around country means
-
-dat$gender.cntrymc<-dat$gender.gmc-dat$gender.cntry
-
-#obtain dataframe with voting group means and add to data
-
-gender.voting.group<-dat %>%
-  group_by(voting.group) %>%
-  summarize(gender.voting.group=mean(gender.cntrymc,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=gender.voting.group,
-               by=c("voting.group"))
-
-#center individuals around voting group means
-
-dat$gender.vgmc<-dat$gender.cntrymc-dat$gender.voting.group
-
-#describe the variable
-
-describe(dat$gender.vgmc)
-```
-
-```
-##    vars     n mean   sd median trimmed mad  min  max range  skew kurtosis se
-## X1    1 35740    0 0.49   0.34       0 0.4 -0.8 0.86  1.66 -0.07    -1.91  0
-```
-
-```r
-#rename as lvl1, lvl2, and lvl3
-
-dat$gender.lvl1<-dat$gender.vgmc
-dat$gender.lvl2<-dat$gender.voting.group
-dat$gender.lvl3<-dat$gender.cntry
-```
-
-\newpage
-
-### Model 1 (Same as H1 selected model but with centered sex)
-
-
-```r
-EX1.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                age+occup+educ+resid+
-                 gender.lvl1+
-                environ.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-
-isSingular(EX1.mod1)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-getVC(EX1.mod1)
-```
-
-```
-##            grp         var1         var2      est_SD      est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.31081495  0.096605935
-## 2 voting.group environ.lvl1         <NA>  0.04319467  0.001865779
-## 3 voting.group  (Intercept) environ.lvl1  0.13043033  0.001751099
-## 4        cntry  (Intercept)         <NA>  0.49963845  0.249638579
-## 5        cntry environ.lvl1         <NA>  0.03998946  0.001599157
-## 6        cntry  (Intercept) environ.lvl1 -0.05059339 -0.001010870
-## 7     Residual         <NA>         <NA>  1.02912353  1.059095237
-```
-
-```r
-getFE(EX1.mod1)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.08       0.14    49.42    0.53 0.597 -0.21  0.36
-## age                                                         0.00       0.00 34236.53    4.50 0.000  0.00  0.00
-## occupClerical support workers                              -0.04       0.09 35508.20   -0.46 0.646 -0.21  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35517.67   -0.77 0.439 -0.24  0.10
-## occupElementary occupations                                 0.01       0.09 35520.15    0.14 0.888 -0.16  0.19
-## occupManagers                                              -0.02       0.09 35506.79   -0.21 0.833 -0.19  0.15
-## occupOther: Not in paid work                                0.14       0.09 35673.27    1.54 0.124 -0.04  0.32
-## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.40   -0.74 0.462 -0.24  0.11
-## occupProfessionals                                          0.07       0.09 35512.10    0.80 0.423 -0.10  0.24
-## occupRetired                                               -0.03       0.10 35508.45   -0.35 0.727 -0.23  0.16
-## occupService and sales workers                             -0.04       0.09 35513.98   -0.42 0.671 -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35522.40   -0.62 0.532 -0.24  0.12
-## occupTechnicians and associate professionals               -0.03       0.09 35507.83   -0.37 0.714 -0.20  0.14
-## occupUnemployed                                            -0.02       0.11 35524.96   -0.23 0.819 -0.23  0.19
-## educ                                                        0.01       0.00 35701.13    7.49 0.000  0.01  0.02
-## resid                                                      -0.06       0.01 35633.28   -5.23 0.000 -0.08 -0.04
-## gender.lvl1                                                 0.05       0.01 35448.50    4.44 0.000  0.03  0.08
-## environ.lvl1                                                0.12       0.01    19.40   11.53 0.000  0.10  0.15
-```
-
-\newpage
-
-### Model 2 (interaction between sex and environmental attitudes)
-
-
-```r
-EX1.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                age+occup+educ+resid+
-                 gender.lvl1+
-                environ.lvl1+
-                 gender.lvl1:environ.lvl1,
-                 data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-anova(EX1.mod1,EX1.mod2)
-```
-
-```
-## Data: dat
-## Models:
-## EX1.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX1.mod1:     age + occup + educ + resid + gender.lvl1 + environ.lvl1
-## EX1.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX1.mod2:     age + occup + educ + resid + gender.lvl1 + environ.lvl1 + 
-## EX1.mod2:     gender.lvl1:environ.lvl1
-##          npar    AIC    BIC logLik deviance Chisq Df Pr(>Chisq)
-## EX1.mod1   25 104292 104504 -52121   104242                    
-## EX1.mod2   26 104294 104514 -52121   104242 0.012  1     0.9128
-```
-
-```r
-isSingular(EX1.mod2)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-getVC(EX1.mod2)
-```
-
-```
-##            grp         var1         var2      est_SD      est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.31082638  0.096613040
-## 2 voting.group environ.lvl1         <NA>  0.04319942  0.001866190
-## 3 voting.group  (Intercept) environ.lvl1  0.13037807  0.001750654
-## 4        cntry  (Intercept)         <NA>  0.49964041  0.249640543
-## 5        cntry environ.lvl1         <NA>  0.03999356  0.001599484
-## 6        cntry  (Intercept) environ.lvl1 -0.05050727 -0.001009256
-## 7     Residual         <NA>         <NA>  1.02912290  1.059093940
-```
-
-```r
-getFE(EX1.mod2)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.08       0.14    49.42    0.53 0.598 -0.21  0.36
-## age                                                         0.00       0.00 34235.66    4.50 0.000  0.00  0.00
-## occupClerical support workers                              -0.04       0.09 35508.12   -0.46 0.646 -0.21  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35517.72   -0.77 0.439 -0.24  0.10
-## occupElementary occupations                                 0.01       0.09 35520.04    0.14 0.888 -0.16  0.19
-## occupManagers                                              -0.02       0.09 35506.74   -0.21 0.833 -0.19  0.16
-## occupOther: Not in paid work                                0.14       0.09 35673.24    1.54 0.124 -0.04  0.32
-## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.40   -0.74 0.462 -0.24  0.11
-## occupProfessionals                                          0.07       0.09 35512.07    0.80 0.423 -0.10  0.24
-## occupRetired                                               -0.03       0.10 35508.36   -0.35 0.728 -0.23  0.16
-## occupService and sales workers                             -0.04       0.09 35513.90   -0.42 0.671 -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35522.38   -0.62 0.532 -0.24  0.12
-## occupTechnicians and associate professionals               -0.03       0.09 35507.78   -0.37 0.714 -0.20  0.14
-## occupUnemployed                                            -0.02       0.11 35524.83   -0.23 0.819 -0.23  0.19
-## educ                                                        0.01       0.00 35700.98    7.48 0.000  0.01  0.02
-## resid                                                      -0.06       0.01 35633.12   -5.23 0.000 -0.08 -0.04
-## gender.lvl1                                                 0.05       0.01 35448.16    4.44 0.000  0.03  0.08
-## environ.lvl1                                                0.12       0.01    19.42   11.53 0.000  0.10  0.15
-## gender.lvl1:environ.lvl1                                    0.00       0.01 35516.35    0.11 0.913 -0.02  0.02
-```
-
-\newpage
-
-
-## Does the association vary by education (years)?
-
-### Center the education variable
-
-
-```r
-describe(dat$educ)
-```
-
-```
-##    vars     n mean   sd median trimmed  mad    min   max range skew kurtosis   se
-## X1    1 35740 0.04 3.86  -0.02   -0.01 2.97 -13.02 40.98    54 0.33     1.88 0.02
-```
-
-```r
-#already grand-mean centered
-
-#obtain dataframe with country means and add to data
-
-educ.cntry<-dat %>%
-  group_by(cntry) %>%
-  summarize(educ.cntry=mean(educ,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=educ.cntry,
-               by=c("cntry"))
-
-#center individuals around country means
-
-dat$educ.cntrymc<-dat$educ-dat$educ.cntry
-
-#obtain dataframe with voting group means and add to data
-
-educ.voting.group<-dat %>%
-  group_by(voting.group) %>%
-  summarize(educ.voting.group=mean(educ.cntrymc,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=educ.voting.group,
-               by=c("voting.group"))
-
-#center individuals around voting group means
-
-dat$educ.vgmc<-dat$educ.cntrymc-dat$educ.voting.group
-
-#describe the variable
-
-describe(dat$educ.vgmc)
-```
-
-```
-##    vars     n mean   sd median trimmed  mad    min   max range skew kurtosis   se
-## X1    1 35740    0 3.56  -0.16   -0.08 3.23 -15.82 39.72 55.54 0.42     2.49 0.02
-```
-
-```r
-#rename as lvl1, lvl2, and lvl3
-
-dat$educ.lvl1<-dat$educ.vgmc
-dat$educ.lvl2<-dat$educ.voting.group
-dat$educ.lvl3<-dat$educ.cntry
-```
-
-\newpage
-
-### Model 1 (Same as H1 selected model but with centered education)
-
-
-```r
-EX4.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                gender+occup+age+resid+
-                 educ.lvl1+
-                environ.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-
-isSingular(EX4.mod1)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-(VC.EX4.mod1<-getVC(EX4.mod1))
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.31538141  0.0994654350
-## 2 voting.group environ.lvl1         <NA>  0.04319669  0.0018659537
-## 3 voting.group  (Intercept) environ.lvl1  0.13786860  0.0018782434
-## 4        cntry  (Intercept)         <NA>  0.49968068  0.2496807852
-## 5        cntry environ.lvl1         <NA>  0.03998612  0.0015988901
-## 6        cntry  (Intercept) environ.lvl1 -0.03730454 -0.0007453556
-## 7     Residual         <NA>         <NA>  1.02911789  1.0590836279
-```
-
-```r
-getFE(EX4.mod1)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.08       0.14    49.37    0.56 0.579 -0.21  0.37
-## gender                                                      0.06       0.01 35565.32    4.69 0.000  0.03  0.08
-## occupClerical support workers                              -0.04       0.09 35505.86   -0.49 0.622 -0.22  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35518.14   -0.81 0.419 -0.24  0.10
-## occupElementary occupations                                 0.01       0.09 35523.49    0.08 0.938 -0.17  0.18
-## occupManagers                                              -0.02       0.09 35505.18   -0.21 0.832 -0.19  0.15
-## occupOther: Not in paid work                                0.13       0.09 35680.92    1.46 0.145 -0.05  0.31
-## occupPlant and machine operators, and assemblers           -0.07       0.09 35516.64   -0.78 0.437 -0.24  0.10
-## occupProfessionals                                          0.07       0.09 35512.25    0.81 0.417 -0.10  0.24
-## occupRetired                                               -0.04       0.10 35508.76   -0.39 0.694 -0.23  0.15
-## occupService and sales workers                             -0.04       0.09 35513.41   -0.47 0.636 -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35523.19   -0.67 0.505 -0.24  0.12
-## occupTechnicians and associate professionals               -0.03       0.09 35505.55   -0.38 0.701 -0.21  0.14
-## occupUnemployed                                            -0.03       0.11 35526.98   -0.27 0.785 -0.24  0.18
-## age                                                         0.00       0.00 34776.42    4.34 0.000  0.00  0.00
-## resid                                                      -0.06       0.01 35638.63   -5.28 0.000 -0.09 -0.04
-## educ.lvl1                                                   0.01       0.00 35615.19    6.90 0.000  0.01  0.02
-## environ.lvl1                                                0.12       0.01    19.39   11.56 0.000  0.10  0.15
-```
-
-\newpage
-
-### Model 2 (interaction between education and environment attitudes)
-
-
-```r
-EX4.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                gender+occup+age+resid+
-                 educ.lvl1+
-                environ.lvl1+
-                 environ.lvl1:educ.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-anova(EX4.mod1,EX4.mod2)
-```
-
-```
-## Data: dat
-## Models:
-## EX4.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX4.mod1:     gender + occup + age + resid + educ.lvl1 + environ.lvl1
-## EX4.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX4.mod2:     gender + occup + age + resid + educ.lvl1 + environ.lvl1 + 
-## EX4.mod2:     environ.lvl1:educ.lvl1
-##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)    
-## EX4.mod1   25 104298 104510 -52124   104248                         
-## EX4.mod2   26 104280 104501 -52114   104228 19.406  1  1.057e-05 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
-isSingular(EX4.mod2)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-(VC.EX4.mod2<-getVC(EX4.mod2))
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.31474748  0.0990659785
-## 2 voting.group environ.lvl1         <NA>  0.04281063  0.0018327499
-## 3 voting.group  (Intercept) environ.lvl1  0.14510199  0.0019551822
-## 4        cntry  (Intercept)         <NA>  0.49874182  0.2487434013
-## 5        cntry environ.lvl1         <NA>  0.04021941  0.0016176010
-## 6        cntry  (Intercept) environ.lvl1 -0.03869034 -0.0007760934
-## 7     Residual         <NA>         <NA>  1.02886241  1.0585578524
-```
-
-```r
-getFE(EX4.mod2)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.08       0.14    49.48    0.56 0.577 -0.21  0.37
-## gender                                                      0.05       0.01 35565.51    4.65 0.000  0.03  0.08
-## occupClerical support workers                              -0.05       0.09 35506.10   -0.52 0.604 -0.22  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35518.38   -0.85 0.397 -0.25  0.10
-## occupElementary occupations                                 0.00       0.09 35523.75    0.03 0.976 -0.17  0.18
-## occupManagers                                              -0.02       0.09 35505.43   -0.25 0.804 -0.20  0.15
-## occupOther: Not in paid work                                0.13       0.09 35681.55    1.41 0.158 -0.05  0.31
-## occupPlant and machine operators, and assemblers           -0.07       0.09 35516.92   -0.81 0.418 -0.25  0.10
-## occupProfessionals                                          0.07       0.09 35512.31    0.76 0.449 -0.11  0.24
-## occupRetired                                               -0.04       0.10 35509.14   -0.45 0.651 -0.24  0.15
-## occupService and sales workers                             -0.04       0.09 35513.61   -0.50 0.619 -0.22  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.07       0.09 35523.45   -0.71 0.479 -0.25  0.12
-## occupTechnicians and associate professionals               -0.04       0.09 35505.75   -0.40 0.686 -0.21  0.14
-## occupUnemployed                                            -0.03       0.11 35527.26   -0.31 0.760 -0.24  0.18
-## age                                                         0.00       0.00 34768.80    4.22 0.000  0.00  0.00
-## resid                                                      -0.06       0.01 35639.30   -5.23 0.000 -0.08 -0.04
-## educ.lvl1                                                   0.01       0.00 35614.80    6.75 0.000  0.01  0.02
-## environ.lvl1                                                0.12       0.01    19.40   11.49 0.000  0.10  0.15
-## educ.lvl1:environ.lvl1                                      0.01       0.00 35550.14    4.41 0.000  0.00  0.01
-```
-
-
-\newpage
-
-#### Marginal effects for different levels of education
-
-
-```r
-EX4.mod2.trends<-
-  emtrends(EX4.mod2,specs = c("educ.lvl1"),var=c("environ.lvl1"),
-           at=
-             list(educ.lvl1=
-                    c(mean(dat$educ.lvl1)-sd(dat$educ.lvl1),
-                      mean(dat$educ.lvl1),                              mean(dat$educ.lvl1)+sd(dat$educ.lvl1))))
-(EX4.mod2.trends.tab<-data.frame(EX4.mod2.trends))
-```
-
-```
-##       educ.lvl1 environ.lvl1.trend         SE  df  asymp.LCL asymp.UCL
-## 1 -3.561414e+00          0.1033404 0.01171741 Inf 0.08037474 0.1263061
-## 2  9.056577e-19          0.1234926 0.01075061 Inf 0.10242182 0.1445634
-## 3  3.561414e+00          0.1436448 0.01164837 Inf 0.12081444 0.1664752
-```
-
-```r
-EX4.mod2.trends.tab$p<-
-  2*(1-pnorm(abs(EX4.mod2.trends.tab$environ.lvl1.trend/
-                   EX4.mod2.trends.tab$SE)))
-EX4.mod2.trends.tab$adj.p<-
-  p.adjust(EX4.mod2.trends.tab$p,method="holm")
-
-EX4.mod2.trends.tab<-
-  cbind(group=round(EX4.mod2.trends.tab[,1],2),
-        round(EX4.mod2.trends.tab[,c(2,3)],2),
-        round(EX4.mod2.trends.tab[,c(7,8)],4),
-        round(EX4.mod2.trends.tab[,c(5,6)],2))
-EX4.mod2.trends.tab
-```
-
-```
-##   group environ.lvl1.trend   SE p adj.p asymp.LCL asymp.UCL
-## 1 -3.56               0.10 0.01 0     0      0.08      0.13
-## 2  0.00               0.12 0.01 0     0      0.10      0.14
-## 3  3.56               0.14 0.01 0     0      0.12      0.17
-```
-
-\newpage
-
-## Does the association vary by place of residence (urban/rural)?
-
-### Center the residence variable
-
-
-```r
-describe(dat$resid)
-```
-
-```
-##    vars     n  mean   sd median trimmed mad  min max range skew kurtosis se
-## X1    1 35740 -0.11 0.49   -0.5   -0.14   0 -0.5 0.5     1 0.45    -1.79  0
-```
-
-```r
-dat$resid.gmc<-dat$resid-mean(dat$resid,na.rm=T)
-
-
-#obtain dataframe with country means and add to data
-
-resid.cntry<-dat %>%
-  group_by(cntry) %>%
-  summarize(resid.cntry=mean(resid.gmc,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=resid.cntry,
-               by=c("cntry"))
-
-#center individuals around country means
-
-dat$resid.cntrymc<-dat$resid.gmc-dat$resid.cntry
-
-#obtain dataframe with voting group means and add to data
-
-resid.voting.group<-dat %>%
-  group_by(voting.group) %>%
-  summarize(resid.voting.group=mean(resid.cntrymc,na.rm=T))
-
-dat<-left_join(x=dat,
-               y=resid.voting.group,
-               by=c("voting.group"))
-
-#center individuals around voting group means
-
-dat$resid.vgmc<-dat$resid.cntrymc-dat$resid.voting.group
-
-#describe the variable
-
-describe(dat$resid.vgmc)
-```
-
-```
-##    vars     n mean   sd median trimmed  mad   min  max range skew kurtosis se
-## X1    1 35740    0 0.47  -0.25   -0.02 0.34 -0.86 0.97  1.83 0.41    -1.53  0
-```
-
-```r
-#rename as lvl1, lvl2, and lvl3
-
-dat$resid.lvl1<-dat$resid.vgmc
-dat$resid.lvl2<-dat$resid.voting.group
-dat$resid.lvl3<-dat$resid.cntry
-```
-
-\newpage
-
-### Model 1 (Same as H1 selected model but with centered residence)
-
-
-```r
-EX5.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                gender+occup+age+educ+
-                 resid.lvl1+
-                environ.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-
-isSingular(EX5.mod1)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-(VC.EX5.mod1<-getVC(EX5.mod1))
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.31213323  0.0974271515
-## 2 voting.group environ.lvl1         <NA>  0.04314186  0.0018612198
-## 3 voting.group  (Intercept) environ.lvl1  0.12768151  0.0017193602
-## 4        cntry  (Intercept)         <NA>  0.49932897  0.2493294180
-## 5        cntry environ.lvl1         <NA>  0.04001042  0.0016008337
-## 6        cntry  (Intercept) environ.lvl1 -0.04882110 -0.0009753655
-## 7     Residual         <NA>         <NA>  1.02912226  1.0590926168
-```
-
-```r
-getFE(EX5.mod1)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.08       0.14    49.44    0.58 0.563 -0.20  0.37
-## gender                                                      0.06       0.01 35568.31    4.69 0.000  0.03  0.08
-## occupClerical support workers                              -0.04       0.09 35507.14   -0.48 0.633 -0.22  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35517.33   -0.78 0.438 -0.24  0.10
-## occupElementary occupations                                 0.01       0.09 35519.18    0.12 0.902 -0.16  0.18
-## occupManagers                                              -0.02       0.09 35506.37   -0.22 0.827 -0.19  0.15
-## occupOther: Not in paid work                                0.14       0.09 35672.96    1.52 0.128 -0.04  0.32
-## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.02   -0.74 0.458 -0.24  0.11
-## occupProfessionals                                          0.07       0.09 35510.98    0.79 0.432 -0.10  0.24
-## occupRetired                                               -0.04       0.10 35507.41   -0.37 0.715 -0.23  0.16
-## occupService and sales workers                             -0.04       0.09 35512.89   -0.45 0.656 -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35524.34   -0.65 0.516 -0.24  0.12
-## occupTechnicians and associate professionals               -0.03       0.09 35507.07   -0.38 0.704 -0.20  0.14
-## occupUnemployed                                            -0.03       0.11 35524.45   -0.24 0.811 -0.24  0.18
-## age                                                         0.00       0.00 34269.44    4.48 0.000  0.00  0.00
-## educ                                                        0.01       0.00 35698.20    7.52 0.000  0.01  0.02
-## resid.lvl1                                                 -0.06       0.01 35436.62   -4.83 0.000 -0.08 -0.03
-## environ.lvl1                                                0.12       0.01    19.40   11.54 0.000  0.10  0.15
-```
-
-\newpage
-
-### Model 2 (interaction between residence and environment attitudes)
-
-
-```r
-EX5.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                gender+occup+age+educ+
-                 resid.lvl1+
-                environ.lvl1+
-                 environ.lvl1:resid.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-anova(EX5.mod1,EX5.mod2)
-```
-
-```
-## Data: dat
-## Models:
-## EX5.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX5.mod1:     gender + occup + age + educ + resid.lvl1 + environ.lvl1
-## EX5.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX5.mod2:     gender + occup + age + educ + resid.lvl1 + environ.lvl1 + 
-## EX5.mod2:     environ.lvl1:resid.lvl1
-##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
-## EX5.mod1   25 104293 104506 -52122   104243                     
-## EX5.mod2   26 104295 104516 -52122   104243 0.1275  1      0.721
-```
-
-```r
-isSingular(EX5.mod2)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-(VC.EX5.mod2<-getVC(EX5.mod2))
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.31212906  0.0974245472
-## 2 voting.group environ.lvl1         <NA>  0.04311736  0.0018591063
-## 3 voting.group  (Intercept) environ.lvl1  0.12866809  0.0017316382
-## 4        cntry  (Intercept)         <NA>  0.49932953  0.2493299812
-## 5        cntry environ.lvl1         <NA>  0.04002016  0.0016016135
-## 6        cntry  (Intercept) environ.lvl1 -0.04828142 -0.0009648196
-## 7     Residual         <NA>         <NA>  1.02912138  1.0590908084
-```
-
-```r
-getFE(EX5.mod2)
-```
-
-```
-##                                                         Estimate Std..Error       df t.value     p    LL    UL
-## (Intercept)                                                 0.08       0.14    49.44    0.58 0.563 -0.20  0.37
-## gender                                                      0.06       0.01 35568.19    4.70 0.000  0.03  0.08
-## occupClerical support workers                              -0.04       0.09 35507.17   -0.48 0.633 -0.22  0.13
-## occupCraft and related trades workers                      -0.07       0.09 35517.36   -0.78 0.437 -0.24  0.10
-## occupElementary occupations                                 0.01       0.09 35519.21    0.12 0.902 -0.16  0.18
-## occupManagers                                              -0.02       0.09 35506.44   -0.22 0.827 -0.19  0.15
-## occupOther: Not in paid work                                0.14       0.09 35673.02    1.52 0.128 -0.04  0.32
-## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.08   -0.74 0.458 -0.24  0.11
-## occupProfessionals                                          0.07       0.09 35511.04    0.79 0.432 -0.10  0.24
-## occupRetired                                               -0.04       0.10 35507.69   -0.37 0.713 -0.23  0.16
-## occupService and sales workers                             -0.04       0.09 35512.89   -0.44 0.656 -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35524.50   -0.65 0.515 -0.24  0.12
-## occupTechnicians and associate professionals               -0.03       0.09 35507.07   -0.38 0.704 -0.20  0.14
-## occupUnemployed                                            -0.03       0.11 35524.48   -0.24 0.810 -0.24  0.18
-## age                                                         0.00       0.00 34269.03    4.48 0.000  0.00  0.00
-## educ                                                        0.01       0.00 35698.28    7.51 0.000  0.01  0.02
-## resid.lvl1                                                 -0.06       0.01 35436.44   -4.84 0.000 -0.08 -0.03
-## environ.lvl1                                                0.12       0.01    19.40   11.53 0.000  0.10  0.15
-## resid.lvl1:environ.lvl1                                     0.00       0.01 35520.29   -0.36 0.721 -0.02  0.02
-```
-
-
-\newpage
-
-## Does the association vary by occupational groups
-
-### Model 1 (Same as H1 selected model)
-
-
-```r
-EX2.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                age+gender+educ+resid+occup+
-                environ.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-
-isSingular(EX2.mod1)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-getVC(EX2.mod1)
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.30918363  0.0955945141
-## 2 voting.group environ.lvl1         <NA>  0.04317550  0.0018641240
-## 3 voting.group  (Intercept) environ.lvl1  0.12926379  0.0017255628
-## 4        cntry  (Intercept)         <NA>  0.49932256  0.2493230223
-## 5        cntry environ.lvl1         <NA>  0.04000565  0.0016004517
-## 6        cntry  (Intercept) environ.lvl1 -0.04865068 -0.0009718325
-## 7     Residual         <NA>         <NA>  1.02912455  1.0590973317
-```
-
-\newpage
-
-
-### Model 2 (Interaction between environment and occupational groups)
-
-
-```r
-EX2.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
-                (environ.lvl1|cntry)+
-                age+gender+educ+resid+occup+
-                environ.lvl1+
-                 occup:environ.lvl1,data=dat,REML=F,
-                 control=lmerControl(optimizer="bobyqa",
-                                     optCtrl=list(maxfun=2e8)))
-
-
-anova(EX2.mod1,EX2.mod2)
-```
-
-```
-## Data: dat
-## Models:
-## EX2.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX2.mod1:     age + gender + educ + resid + occup + environ.lvl1
-## EX2.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
-## EX2.mod2:     age + gender + educ + resid + occup + environ.lvl1 + occup:environ.lvl1
-##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)   
-## EX2.mod1   25 104289 104502 -52120   104239                        
-## EX2.mod2   37 104281 104594 -52103   104207 32.836 12   0.001027 **
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
-isSingular(EX2.mod2)
-```
-
-```
-## [1] FALSE
-```
-
-```r
-getVC(EX2.mod2)
-```
-
-```
-##            grp         var1         var2      est_SD       est_SD2
-## 1 voting.group  (Intercept)         <NA>  0.30949953  0.0957899604
-## 2 voting.group environ.lvl1         <NA>  0.04210546  0.0017728693
-## 3 voting.group  (Intercept) environ.lvl1  0.09193784  0.0011980989
-## 4        cntry  (Intercept)         <NA>  0.49892466  0.2489258209
-## 5        cntry environ.lvl1         <NA>  0.03929672  0.0015442324
-## 6        cntry  (Intercept) environ.lvl1 -0.03786228 -0.0007423317
-## 7     Residual         <NA>         <NA>  1.02867966  1.0581818352
-```
-
-\newpage
-
-#### Marginal effects for each occupation group
-
-
-```r
-EX2.mod2.trends<-emtrends(EX2.mod2,specs = c("occup"),var=c("environ.lvl1"))
-(EX2.mod2.trends.tab<-data.frame(EX2.mod2.trends))
-```
-
-```
-##                                                 occup environ.lvl1.trend         SE  df   asymp.LCL asymp.UCL
-## 1                                        Armed forces        0.002458622 0.07237495 Inf -0.13939367 0.1443109
-## 2                            Clerical support workers        0.171992561 0.01883320 Inf  0.13508017 0.2089050
-## 3                    Craft and related trades workers        0.119880759 0.01694750 Inf  0.08666427 0.1530972
-## 4                              Elementary occupations        0.101679221 0.01877408 Inf  0.06488271 0.1384757
-## 5                                            Managers        0.081133954 0.01964255 Inf  0.04263527 0.1196326
-## 6                             Other: Not in paid work        0.159899211 0.02207025 Inf  0.11664232 0.2031561
-## 7         Plant and machine operators, and assemblers        0.102839704 0.01985327 Inf  0.06392801 0.1417514
-## 8                                       Professionals        0.140211289 0.01480285 Inf  0.11119823 0.1692243
-## 9                                             Retired        0.131422064 0.03913153 Inf  0.05472567 0.2081185
-## 10                          Service and sales workers        0.110732091 0.01505900 Inf  0.08121700 0.1402472
-## 11 Skilled agricultural, forestry and fishery workers        0.121043544 0.03187536 Inf  0.05856899 0.1835181
-## 12            Technicians and associate professionals        0.130837107 0.01590712 Inf  0.09965973 0.1620145
-## 13                                         Unemployed        0.007406265 0.05474532 Inf -0.09989260 0.1147051
-```
-
-```r
-EX2.mod2.trends.tab$p<-
-  2*(1-pnorm(abs(EX2.mod2.trends.tab$environ.lvl1.trend/
-                   EX2.mod2.trends.tab$SE)))
-EX2.mod2.trends.tab$adj.p<-
-  p.adjust(EX2.mod2.trends.tab$p,method="holm")
-
-EX2.mod2.trends.tab<-
-  cbind(group=EX2.mod2.trends.tab[,1],
-        round(EX2.mod2.trends.tab[,c(2,3)],2),
-        round(EX2.mod2.trends.tab[,c(7,8)],4),
-        round(EX2.mod2.trends.tab[,c(5,6)],2))
-EX2.mod2.trends.tab
-```
-
-```
-##                                                 group environ.lvl1.trend   SE      p  adj.p asymp.LCL asymp.UCL
-## 1                                        Armed forces               0.00 0.07 0.9729 1.0000     -0.14      0.14
-## 2                            Clerical support workers               0.17 0.02 0.0000 0.0000      0.14      0.21
-## 3                    Craft and related trades workers               0.12 0.02 0.0000 0.0000      0.09      0.15
-## 4                              Elementary occupations               0.10 0.02 0.0000 0.0000      0.06      0.14
-## 5                                            Managers               0.08 0.02 0.0000 0.0002      0.04      0.12
-## 6                             Other: Not in paid work               0.16 0.02 0.0000 0.0000      0.12      0.20
-## 7         Plant and machine operators, and assemblers               0.10 0.02 0.0000 0.0000      0.06      0.14
-## 8                                       Professionals               0.14 0.01 0.0000 0.0000      0.11      0.17
-## 9                                             Retired               0.13 0.04 0.0008 0.0024      0.05      0.21
-## 10                          Service and sales workers               0.11 0.02 0.0000 0.0000      0.08      0.14
-## 11 Skilled agricultural, forestry and fishery workers               0.12 0.03 0.0001 0.0006      0.06      0.18
-## 12            Technicians and associate professionals               0.13 0.02 0.0000 0.0000      0.10      0.16
-## 13                                         Unemployed               0.01 0.05 0.8924 1.0000     -0.10      0.11
-```
-
-```r
-#contrast for all groups against mean of other groups
-contrast(EX2.mod2.trends, "del.eff", by = NULL,adjust=c("holm"))
-```
-
-```
-##  contrast                                                  estimate     SE  df z.ratio p.value
-##  Armed forces effect                                       -0.11246 0.0721 Inf -1.559  0.9523 
-##  Clerical support workers effect                            0.07120 0.0187 Inf  3.806  0.0018 
-##  Craft and related trades workers effect                    0.01474 0.0168 Inf  0.876  1.0000 
-##  Elementary occupations effect                             -0.00498 0.0186 Inf -0.267  1.0000 
-##  Managers effect                                           -0.02723 0.0196 Inf -1.392  1.0000 
-##  Other: Not in paid work effect                             0.05810 0.0220 Inf  2.639  0.0999 
-##  Plant and machine operators, and assemblers effect        -0.00372 0.0197 Inf -0.188  1.0000 
-##  Professionals effect                                       0.03677 0.0148 Inf  2.491  0.1402 
-##  Retired effect                                             0.02725 0.0389 Inf  0.700  1.0000 
-##  Service and sales workers effect                           0.00483 0.0149 Inf  0.324  1.0000 
-##  Skilled agricultural, forestry and fishery workers effect  0.01600 0.0318 Inf  0.504  1.0000 
-##  Technicians and associate professionals effect             0.02661 0.0158 Inf  1.683  0.8310 
-##  Unemployed effect                                         -0.10710 0.0545 Inf -1.965  0.4940 
-## 
-## Results are averaged over the levels of: gender, resid 
-## Degrees-of-freedom method: asymptotic 
-## P value adjustment: holm method for 13 tests
-```
-
-
 
 
 
@@ -8031,11 +7371,3337 @@ non.lin.plot<-
 non.lin.plot
 ```
 
-![](All_analyses_files/figure-html/unnamed-chunk-101-1.png)<!-- -->
+![](All_analyses_files/figure-html/unnamed-chunk-89-1.png)<!-- -->
 
 ```r
 ggsave(plot = non.lin.plot,
        filename="non.lin.plot.png",device = "png",
        units = "cm",width=12,height=18,dpi = 600)
+```
+
+
+\newpage
+
+
+
+# Exploratory analyses for moderators
+
+## Does the association vary by age?
+
+### Center the age variable
+
+
+```r
+describe(dat$age)
+```
+
+```
+##    vars     n  mean   sd median trimmed   mad    min   max range skew kurtosis  se
+## X1    1 35740 -0.09 18.4   0.64   -0.17 22.24 -34.36 50.64    85 0.02    -0.91 0.1
+```
+
+```r
+#already grand-mean centered
+
+#obtain dataframe with country means and add to data
+
+age.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(age.cntry=mean(age,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=age.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$age.cntrymc<-dat$age-dat$age.cntry
+
+#obtain dataframe with voting group means and add to data
+
+age.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(age.voting.group=mean(age.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=age.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$age.vgmc<-dat$age.cntrymc-dat$age.voting.group
+
+#describe the variable
+
+describe(dat$age.vgmc)
+```
+
+```
+##    vars     n mean    sd median trimmed   mad    min   max range skew kurtosis   se
+## X1    1 35740    0 16.12  -0.02   -0.18 17.63 -41.78 55.52  97.3 0.09    -0.56 0.09
+```
+
+```r
+#rename as lvl1, lvl2, and lvl3
+
+dat$age.lvl1<-dat$age.vgmc
+dat$age.lvl2<-dat$age.voting.group
+dat$age.lvl3<-dat$age.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered age)
+
+* Divide age variable by 10 to give interpretation by a decade
+
+
+```r
+dat$age.lvl1.10<-dat$age.lvl1/10
+
+EX3.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                gender+occup+educ+resid+
+                 age.lvl1.10+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX3.mod1)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(VC.EX3.mod1<-getVC(EX3.mod1))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30440667  0.0926634196
+## 2 voting.group environ.lvl1         <NA>  0.04306793  0.0018548466
+## 3 voting.group  (Intercept) environ.lvl1  0.11749126  0.0015403298
+## 4        cntry  (Intercept)         <NA>  0.49917568  0.2491763637
+## 5        cntry environ.lvl1         <NA>  0.04008438  0.0016067573
+## 6        cntry  (Intercept) environ.lvl1 -0.04834386 -0.0009673194
+## 7     Residual         <NA>         <NA>  1.02911869  1.0590852861
+```
+
+```r
+getFE(EX3.mod1)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.52    0.51 0.615 -0.21  0.36
+## gender                                                      0.06       0.01 35582.65    4.68 0.000  0.03  0.08
+## occupClerical support workers                              -0.04       0.09 35512.24   -0.47 0.640 -0.21  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35522.70   -0.76 0.446 -0.24  0.11
+## occupElementary occupations                                 0.01       0.09 35527.09    0.14 0.892 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35509.88   -0.22 0.824 -0.19  0.15
+## occupOther: Not in paid work                                0.14       0.09 35700.60    1.53 0.126 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35519.71   -0.73 0.464 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35514.53    0.78 0.434 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35505.90   -0.40 0.687 -0.23  0.15
+## occupService and sales workers                             -0.04       0.09 35521.63   -0.43 0.671 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35525.96   -0.63 0.530 -0.24  0.12
+## occupTechnicians and associate professionals               -0.03       0.09 35511.65   -0.37 0.710 -0.20  0.14
+## occupUnemployed                                            -0.02       0.11 35547.75   -0.20 0.840 -0.23  0.19
+## educ                                                        0.01       0.00 35715.13    7.76 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35639.20   -5.25 0.000 -0.08 -0.04
+## age.lvl1.10                                                 0.02       0.00 35528.89    5.25 0.000  0.01  0.03
+## environ.lvl1                                                0.12       0.01    19.40   11.52 0.000  0.10  0.15
+```
+
+
+\newpage
+
+### Model 2 (interaction between age and environmental attitudes)
+
+
+```r
+EX3.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                gender+occup+educ+resid+
+                 age.lvl1.10+
+                environ.lvl1+
+                 age.lvl1.10:environ.lvl1,
+                 data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+anova(EX3.mod1,EX3.mod2)
+```
+
+```
+## Data: dat
+## Models:
+## EX3.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX3.mod1:     gender + occup + educ + resid + age.lvl1.10 + environ.lvl1
+## EX3.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX3.mod2:     gender + occup + educ + resid + age.lvl1.10 + environ.lvl1 + 
+## EX3.mod2:     age.lvl1.10:environ.lvl1
+##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)   
+## EX3.mod1   25 104282 104494 -52116   104232                        
+## EX3.mod2   26 104275 104495 -52111   104223 9.3761  1   0.002198 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+isSingular(EX3.mod2)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(VC.EX3.mod2<-getVC(EX3.mod2))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30426074  0.0925745987
+## 2 voting.group environ.lvl1         <NA>  0.04295373  0.0018450227
+## 3 voting.group  (Intercept) environ.lvl1  0.12759011  0.0016674922
+## 4        cntry  (Intercept)         <NA>  0.49911415  0.2491149305
+## 5        cntry environ.lvl1         <NA>  0.04005143  0.0016041172
+## 6        cntry  (Intercept) environ.lvl1 -0.04815853 -0.0009627004
+## 7     Residual         <NA>         <NA>  1.02899151  1.0588235363
+```
+
+```r
+getFE(EX3.mod2)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.52    0.51 0.614 -0.21  0.36
+## gender                                                      0.05       0.01 35582.46    4.66 0.000  0.03  0.08
+## occupClerical support workers                              -0.04       0.09 35512.30   -0.48 0.632 -0.22  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35522.74   -0.77 0.443 -0.24  0.10
+## occupElementary occupations                                 0.01       0.09 35527.15    0.12 0.902 -0.16  0.18
+## occupManagers                                              -0.02       0.09 35509.94   -0.23 0.815 -0.19  0.15
+## occupOther: Not in paid work                                0.14       0.09 35700.95    1.50 0.134 -0.04  0.31
+## occupPlant and machine operators, and assemblers           -0.07       0.09 35519.77   -0.74 0.458 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35514.57    0.76 0.447 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35505.92   -0.43 0.665 -0.23  0.15
+## occupService and sales workers                             -0.04       0.09 35521.68   -0.44 0.661 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35526.03   -0.64 0.525 -0.24  0.12
+## occupTechnicians and associate professionals               -0.03       0.09 35511.69   -0.38 0.702 -0.20  0.14
+## occupUnemployed                                            -0.02       0.11 35547.78   -0.21 0.837 -0.23  0.19
+## educ                                                        0.01       0.00 35716.30    7.84 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35639.39   -5.24 0.000 -0.08 -0.04
+## age.lvl1.10                                                 0.02       0.00 35528.59    5.35 0.000  0.01  0.03
+## environ.lvl1                                                0.12       0.01    19.40   11.54 0.000  0.10  0.15
+## age.lvl1.10:environ.lvl1                                   -0.01       0.00 35544.83   -3.06 0.002 -0.01  0.00
+```
+
+
+\newpage
+
+#### Marginal effects for ages at -1SD and +1SD
+
+
+```r
+EX3.mod2.trends<-
+  emtrends(EX3.mod2,specs = c("age.lvl1.10"),var=c("environ.lvl1"),
+           at=list(age.lvl1.10=c(
+             
+             mean(dat$age.lvl1.10)-sd(dat$age.lvl1.10),
+             mean(dat$age.lvl1.10),
+             mean(dat$age.lvl1.10)+sd(dat$age.lvl1.10)
+             )))
+
+(EX3.mod2.trends.tab<-data.frame(EX3.mod2.trends))
+```
+
+```
+##     age.lvl1.10 environ.lvl1.trend         SE  df  asymp.LCL asymp.UCL
+## 1 -1.611745e+00          0.1381195 0.01171672 Inf 0.11515520 0.1610839
+## 2  1.780079e-18          0.1237155 0.01072314 Inf 0.10269849 0.1447324
+## 3  1.611745e+00          0.1093114 0.01170135 Inf 0.08637713 0.1322456
+```
+
+```r
+EX3.mod2.trends.tab$p<-
+  2*(1-pnorm(abs(EX3.mod2.trends.tab$environ.lvl1.trend/
+                   EX3.mod2.trends.tab$SE)))
+EX3.mod2.trends.tab$adj.p<-
+  p.adjust(EX3.mod2.trends.tab$p,method="holm")
+
+EX3.mod2.trends.tab<-
+  cbind(group=round(EX3.mod2.trends.tab[,1],2),
+      round(EX3.mod2.trends.tab[,c(2,3)],2),
+      round(EX3.mod2.trends.tab[,c(7,8)],4),
+      round(EX3.mod2.trends.tab[,c(5,6)],2))
+EX3.mod2.trends.tab
+```
+
+```
+##   group environ.lvl1.trend   SE p adj.p asymp.LCL asymp.UCL
+## 1 -1.61               0.14 0.01 0     0      0.12      0.16
+## 2  0.00               0.12 0.01 0     0      0.10      0.14
+## 3  1.61               0.11 0.01 0     0      0.09      0.13
+```
+
+```r
+pairs(EX3.mod2.trends,adjust="none")
+```
+
+```
+##  contrast                                 estimate      SE  df z.ratio p.value
+##  -1.61174532093322 - 1.78007855902334e-18   0.0144 0.00470 Inf 3.063   0.0022 
+##  -1.61174532093322 - 1.61174532093322       0.0288 0.00941 Inf 3.063   0.0022 
+##  1.78007855902334e-18 - 1.61174532093322    0.0144 0.00470 Inf 3.063   0.0022 
+## 
+## Results are averaged over the levels of: gender, occup, resid 
+## Degrees-of-freedom method: asymptotic
+```
+
+\newpage
+
+## Does the association vary by sex?
+
+### Center the sex variable
+
+
+```r
+describe(dat$gender)
+```
+
+```
+##    vars     n mean  sd median trimmed mad  min max range  skew kurtosis se
+## X1    1 35740 0.02 0.5    0.5    0.02   0 -0.5 0.5     1 -0.07       -2  0
+```
+
+```r
+#grand mean center
+dat$gender.gmc<-dat$gender-mean(dat$gender,na.rm=T)
+
+#obtain dataframe with country means and add to data
+
+gender.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(gender.cntry=mean(gender.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=gender.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$gender.cntrymc<-dat$gender.gmc-dat$gender.cntry
+
+#obtain dataframe with voting group means and add to data
+
+gender.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(gender.voting.group=mean(gender.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=gender.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$gender.vgmc<-dat$gender.cntrymc-dat$gender.voting.group
+
+#describe the variable
+
+describe(dat$gender.vgmc)
+```
+
+```
+##    vars     n mean   sd median trimmed mad  min  max range  skew kurtosis se
+## X1    1 35740    0 0.49   0.34       0 0.4 -0.8 0.86  1.66 -0.07    -1.91  0
+```
+
+```r
+#rename as lvl1, lvl2, and lvl3
+
+dat$gender.lvl1<-dat$gender.vgmc
+dat$gender.lvl2<-dat$gender.voting.group
+dat$gender.lvl3<-dat$gender.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered sex)
+
+
+```r
+EX1.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+occup+educ+resid+
+                 gender.lvl1+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX1.mod1)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+getVC(EX1.mod1)
+```
+
+```
+##            grp         var1         var2      est_SD      est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.31081495  0.096605935
+## 2 voting.group environ.lvl1         <NA>  0.04319467  0.001865779
+## 3 voting.group  (Intercept) environ.lvl1  0.13043033  0.001751099
+## 4        cntry  (Intercept)         <NA>  0.49963845  0.249638579
+## 5        cntry environ.lvl1         <NA>  0.03998946  0.001599157
+## 6        cntry  (Intercept) environ.lvl1 -0.05059339 -0.001010870
+## 7     Residual         <NA>         <NA>  1.02912353  1.059095237
+```
+
+```r
+getFE(EX1.mod1)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.08       0.14    49.42    0.53 0.597 -0.21  0.36
+## age                                                         0.00       0.00 34236.53    4.50 0.000  0.00  0.00
+## occupClerical support workers                              -0.04       0.09 35508.20   -0.46 0.646 -0.21  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35517.67   -0.77 0.439 -0.24  0.10
+## occupElementary occupations                                 0.01       0.09 35520.15    0.14 0.888 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35506.79   -0.21 0.833 -0.19  0.15
+## occupOther: Not in paid work                                0.14       0.09 35673.27    1.54 0.124 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.40   -0.74 0.462 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35512.10    0.80 0.423 -0.10  0.24
+## occupRetired                                               -0.03       0.10 35508.45   -0.35 0.727 -0.23  0.16
+## occupService and sales workers                             -0.04       0.09 35513.98   -0.42 0.671 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35522.40   -0.62 0.532 -0.24  0.12
+## occupTechnicians and associate professionals               -0.03       0.09 35507.83   -0.37 0.714 -0.20  0.14
+## occupUnemployed                                            -0.02       0.11 35524.96   -0.23 0.819 -0.23  0.19
+## educ                                                        0.01       0.00 35701.13    7.49 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35633.28   -5.23 0.000 -0.08 -0.04
+## gender.lvl1                                                 0.05       0.01 35448.50    4.44 0.000  0.03  0.08
+## environ.lvl1                                                0.12       0.01    19.40   11.53 0.000  0.10  0.15
+```
+
+\newpage
+
+### Model 2 (interaction between sex and environmental attitudes)
+
+
+```r
+EX1.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+occup+educ+resid+
+                 gender.lvl1+
+                environ.lvl1+
+                 gender.lvl1:environ.lvl1,
+                 data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+anova(EX1.mod1,EX1.mod2)
+```
+
+```
+## Data: dat
+## Models:
+## EX1.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX1.mod1:     age + occup + educ + resid + gender.lvl1 + environ.lvl1
+## EX1.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX1.mod2:     age + occup + educ + resid + gender.lvl1 + environ.lvl1 + 
+## EX1.mod2:     gender.lvl1:environ.lvl1
+##          npar    AIC    BIC logLik deviance Chisq Df Pr(>Chisq)
+## EX1.mod1   25 104292 104504 -52121   104242                    
+## EX1.mod2   26 104294 104514 -52121   104242 0.012  1     0.9128
+```
+
+```r
+isSingular(EX1.mod2)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+getVC(EX1.mod2)
+```
+
+```
+##            grp         var1         var2      est_SD      est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.31082638  0.096613040
+## 2 voting.group environ.lvl1         <NA>  0.04319942  0.001866190
+## 3 voting.group  (Intercept) environ.lvl1  0.13037807  0.001750654
+## 4        cntry  (Intercept)         <NA>  0.49964041  0.249640543
+## 5        cntry environ.lvl1         <NA>  0.03999356  0.001599484
+## 6        cntry  (Intercept) environ.lvl1 -0.05050727 -0.001009256
+## 7     Residual         <NA>         <NA>  1.02912290  1.059093940
+```
+
+```r
+getFE(EX1.mod2)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.08       0.14    49.42    0.53 0.598 -0.21  0.36
+## age                                                         0.00       0.00 34235.66    4.50 0.000  0.00  0.00
+## occupClerical support workers                              -0.04       0.09 35508.12   -0.46 0.646 -0.21  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35517.72   -0.77 0.439 -0.24  0.10
+## occupElementary occupations                                 0.01       0.09 35520.04    0.14 0.888 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35506.74   -0.21 0.833 -0.19  0.16
+## occupOther: Not in paid work                                0.14       0.09 35673.24    1.54 0.124 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.40   -0.74 0.462 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35512.07    0.80 0.423 -0.10  0.24
+## occupRetired                                               -0.03       0.10 35508.36   -0.35 0.728 -0.23  0.16
+## occupService and sales workers                             -0.04       0.09 35513.90   -0.42 0.671 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35522.38   -0.62 0.532 -0.24  0.12
+## occupTechnicians and associate professionals               -0.03       0.09 35507.78   -0.37 0.714 -0.20  0.14
+## occupUnemployed                                            -0.02       0.11 35524.83   -0.23 0.819 -0.23  0.19
+## educ                                                        0.01       0.00 35700.98    7.48 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35633.12   -5.23 0.000 -0.08 -0.04
+## gender.lvl1                                                 0.05       0.01 35448.16    4.44 0.000  0.03  0.08
+## environ.lvl1                                                0.12       0.01    19.42   11.53 0.000  0.10  0.15
+## gender.lvl1:environ.lvl1                                    0.00       0.01 35516.35    0.11 0.913 -0.02  0.02
+```
+
+\newpage
+
+
+## Does the association vary by education (years)?
+
+### Center the education variable
+
+
+```r
+describe(dat$educ)
+```
+
+```
+##    vars     n mean   sd median trimmed  mad    min   max range skew kurtosis   se
+## X1    1 35740 0.04 3.86  -0.02   -0.01 2.97 -13.02 40.98    54 0.33     1.88 0.02
+```
+
+```r
+#already grand-mean centered
+
+#obtain dataframe with country means and add to data
+
+educ.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(educ.cntry=mean(educ,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=educ.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$educ.cntrymc<-dat$educ-dat$educ.cntry
+
+#obtain dataframe with voting group means and add to data
+
+educ.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(educ.voting.group=mean(educ.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=educ.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$educ.vgmc<-dat$educ.cntrymc-dat$educ.voting.group
+
+#describe the variable
+
+describe(dat$educ.vgmc)
+```
+
+```
+##    vars     n mean   sd median trimmed  mad    min   max range skew kurtosis   se
+## X1    1 35740    0 3.56  -0.16   -0.08 3.23 -15.82 39.72 55.54 0.42     2.49 0.02
+```
+
+```r
+#rename as lvl1, lvl2, and lvl3
+
+dat$educ.lvl1<-dat$educ.vgmc
+dat$educ.lvl2<-dat$educ.voting.group
+dat$educ.lvl3<-dat$educ.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered education)
+
+
+```r
+EX4.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                gender+occup+age+resid+
+                 educ.lvl1+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX4.mod1)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(VC.EX4.mod1<-getVC(EX4.mod1))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.31538141  0.0994654350
+## 2 voting.group environ.lvl1         <NA>  0.04319669  0.0018659537
+## 3 voting.group  (Intercept) environ.lvl1  0.13786860  0.0018782434
+## 4        cntry  (Intercept)         <NA>  0.49968068  0.2496807852
+## 5        cntry environ.lvl1         <NA>  0.03998612  0.0015988901
+## 6        cntry  (Intercept) environ.lvl1 -0.03730454 -0.0007453556
+## 7     Residual         <NA>         <NA>  1.02911789  1.0590836279
+```
+
+```r
+getFE(EX4.mod1)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.08       0.14    49.37    0.56 0.579 -0.21  0.37
+## gender                                                      0.06       0.01 35565.32    4.69 0.000  0.03  0.08
+## occupClerical support workers                              -0.04       0.09 35505.86   -0.49 0.622 -0.22  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35518.14   -0.81 0.419 -0.24  0.10
+## occupElementary occupations                                 0.01       0.09 35523.49    0.08 0.938 -0.17  0.18
+## occupManagers                                              -0.02       0.09 35505.18   -0.21 0.832 -0.19  0.15
+## occupOther: Not in paid work                                0.13       0.09 35680.92    1.46 0.145 -0.05  0.31
+## occupPlant and machine operators, and assemblers           -0.07       0.09 35516.64   -0.78 0.437 -0.24  0.10
+## occupProfessionals                                          0.07       0.09 35512.25    0.81 0.417 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35508.76   -0.39 0.694 -0.23  0.15
+## occupService and sales workers                             -0.04       0.09 35513.41   -0.47 0.636 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35523.19   -0.67 0.505 -0.24  0.12
+## occupTechnicians and associate professionals               -0.03       0.09 35505.55   -0.38 0.701 -0.21  0.14
+## occupUnemployed                                            -0.03       0.11 35526.98   -0.27 0.785 -0.24  0.18
+## age                                                         0.00       0.00 34776.42    4.34 0.000  0.00  0.00
+## resid                                                      -0.06       0.01 35638.63   -5.28 0.000 -0.09 -0.04
+## educ.lvl1                                                   0.01       0.00 35615.19    6.90 0.000  0.01  0.02
+## environ.lvl1                                                0.12       0.01    19.39   11.56 0.000  0.10  0.15
+```
+
+\newpage
+
+### Model 2 (interaction between education and environment attitudes)
+
+
+```r
+EX4.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                gender+occup+age+resid+
+                 educ.lvl1+
+                environ.lvl1+
+                 environ.lvl1:educ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+anova(EX4.mod1,EX4.mod2)
+```
+
+```
+## Data: dat
+## Models:
+## EX4.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX4.mod1:     gender + occup + age + resid + educ.lvl1 + environ.lvl1
+## EX4.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX4.mod2:     gender + occup + age + resid + educ.lvl1 + environ.lvl1 + 
+## EX4.mod2:     environ.lvl1:educ.lvl1
+##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)    
+## EX4.mod1   25 104298 104510 -52124   104248                         
+## EX4.mod2   26 104280 104501 -52114   104228 19.406  1  1.057e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+isSingular(EX4.mod2)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(VC.EX4.mod2<-getVC(EX4.mod2))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.31474748  0.0990659785
+## 2 voting.group environ.lvl1         <NA>  0.04281063  0.0018327499
+## 3 voting.group  (Intercept) environ.lvl1  0.14510199  0.0019551822
+## 4        cntry  (Intercept)         <NA>  0.49874182  0.2487434013
+## 5        cntry environ.lvl1         <NA>  0.04021941  0.0016176010
+## 6        cntry  (Intercept) environ.lvl1 -0.03869034 -0.0007760934
+## 7     Residual         <NA>         <NA>  1.02886241  1.0585578524
+```
+
+```r
+getFE(EX4.mod2)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.08       0.14    49.48    0.56 0.577 -0.21  0.37
+## gender                                                      0.05       0.01 35565.51    4.65 0.000  0.03  0.08
+## occupClerical support workers                              -0.05       0.09 35506.10   -0.52 0.604 -0.22  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35518.38   -0.85 0.397 -0.25  0.10
+## occupElementary occupations                                 0.00       0.09 35523.75    0.03 0.976 -0.17  0.18
+## occupManagers                                              -0.02       0.09 35505.43   -0.25 0.804 -0.20  0.15
+## occupOther: Not in paid work                                0.13       0.09 35681.55    1.41 0.158 -0.05  0.31
+## occupPlant and machine operators, and assemblers           -0.07       0.09 35516.92   -0.81 0.418 -0.25  0.10
+## occupProfessionals                                          0.07       0.09 35512.31    0.76 0.449 -0.11  0.24
+## occupRetired                                               -0.04       0.10 35509.14   -0.45 0.651 -0.24  0.15
+## occupService and sales workers                             -0.04       0.09 35513.61   -0.50 0.619 -0.22  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.07       0.09 35523.45   -0.71 0.479 -0.25  0.12
+## occupTechnicians and associate professionals               -0.04       0.09 35505.75   -0.40 0.686 -0.21  0.14
+## occupUnemployed                                            -0.03       0.11 35527.26   -0.31 0.760 -0.24  0.18
+## age                                                         0.00       0.00 34768.80    4.22 0.000  0.00  0.00
+## resid                                                      -0.06       0.01 35639.30   -5.23 0.000 -0.08 -0.04
+## educ.lvl1                                                   0.01       0.00 35614.80    6.75 0.000  0.01  0.02
+## environ.lvl1                                                0.12       0.01    19.40   11.49 0.000  0.10  0.15
+## educ.lvl1:environ.lvl1                                      0.01       0.00 35550.14    4.41 0.000  0.00  0.01
+```
+
+
+\newpage
+
+#### Marginal effects for different levels of education
+
+
+```r
+EX4.mod2.trends<-
+  emtrends(EX4.mod2,specs = c("educ.lvl1"),var=c("environ.lvl1"),
+           at=
+             list(educ.lvl1=
+                    c(mean(dat$educ.lvl1)-sd(dat$educ.lvl1),
+                      mean(dat$educ.lvl1),                              mean(dat$educ.lvl1)+sd(dat$educ.lvl1))))
+(EX4.mod2.trends.tab<-data.frame(EX4.mod2.trends))
+```
+
+```
+##       educ.lvl1 environ.lvl1.trend         SE  df  asymp.LCL asymp.UCL
+## 1 -3.561414e+00          0.1033404 0.01171741 Inf 0.08037474 0.1263061
+## 2  9.056577e-19          0.1234926 0.01075061 Inf 0.10242182 0.1445634
+## 3  3.561414e+00          0.1436448 0.01164837 Inf 0.12081444 0.1664752
+```
+
+```r
+EX4.mod2.trends.tab$p<-
+  2*(1-pnorm(abs(EX4.mod2.trends.tab$environ.lvl1.trend/
+                   EX4.mod2.trends.tab$SE)))
+EX4.mod2.trends.tab$adj.p<-
+  p.adjust(EX4.mod2.trends.tab$p,method="holm")
+
+EX4.mod2.trends.tab<-
+  cbind(group=round(EX4.mod2.trends.tab[,1],2),
+        round(EX4.mod2.trends.tab[,c(2,3)],2),
+        round(EX4.mod2.trends.tab[,c(7,8)],4),
+        round(EX4.mod2.trends.tab[,c(5,6)],2))
+EX4.mod2.trends.tab
+```
+
+```
+##   group environ.lvl1.trend   SE p adj.p asymp.LCL asymp.UCL
+## 1 -3.56               0.10 0.01 0     0      0.08      0.13
+## 2  0.00               0.12 0.01 0     0      0.10      0.14
+## 3  3.56               0.14 0.01 0     0      0.12      0.17
+```
+
+\newpage
+
+## Does the association vary by place of residence (urban/rural)?
+
+### Center the residence variable
+
+
+```r
+describe(dat$resid)
+```
+
+```
+##    vars     n  mean   sd median trimmed mad  min max range skew kurtosis se
+## X1    1 35740 -0.11 0.49   -0.5   -0.14   0 -0.5 0.5     1 0.45    -1.79  0
+```
+
+```r
+dat$resid.gmc<-dat$resid-mean(dat$resid,na.rm=T)
+
+
+#obtain dataframe with country means and add to data
+
+resid.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(resid.cntry=mean(resid.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=resid.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$resid.cntrymc<-dat$resid.gmc-dat$resid.cntry
+
+#obtain dataframe with voting group means and add to data
+
+resid.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(resid.voting.group=mean(resid.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=resid.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$resid.vgmc<-dat$resid.cntrymc-dat$resid.voting.group
+
+#describe the variable
+
+describe(dat$resid.vgmc)
+```
+
+```
+##    vars     n mean   sd median trimmed  mad   min  max range skew kurtosis se
+## X1    1 35740    0 0.47  -0.25   -0.02 0.34 -0.86 0.97  1.83 0.41    -1.53  0
+```
+
+```r
+#rename as lvl1, lvl2, and lvl3
+
+dat$resid.lvl1<-dat$resid.vgmc
+dat$resid.lvl2<-dat$resid.voting.group
+dat$resid.lvl3<-dat$resid.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered residence)
+
+
+```r
+EX5.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                gender+occup+age+educ+
+                 resid.lvl1+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX5.mod1)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(VC.EX5.mod1<-getVC(EX5.mod1))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.31213323  0.0974271515
+## 2 voting.group environ.lvl1         <NA>  0.04314186  0.0018612198
+## 3 voting.group  (Intercept) environ.lvl1  0.12768151  0.0017193602
+## 4        cntry  (Intercept)         <NA>  0.49932897  0.2493294180
+## 5        cntry environ.lvl1         <NA>  0.04001042  0.0016008337
+## 6        cntry  (Intercept) environ.lvl1 -0.04882110 -0.0009753655
+## 7     Residual         <NA>         <NA>  1.02912226  1.0590926168
+```
+
+```r
+getFE(EX5.mod1)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.08       0.14    49.44    0.58 0.563 -0.20  0.37
+## gender                                                      0.06       0.01 35568.31    4.69 0.000  0.03  0.08
+## occupClerical support workers                              -0.04       0.09 35507.14   -0.48 0.633 -0.22  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35517.33   -0.78 0.438 -0.24  0.10
+## occupElementary occupations                                 0.01       0.09 35519.18    0.12 0.902 -0.16  0.18
+## occupManagers                                              -0.02       0.09 35506.37   -0.22 0.827 -0.19  0.15
+## occupOther: Not in paid work                                0.14       0.09 35672.96    1.52 0.128 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.02   -0.74 0.458 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35510.98    0.79 0.432 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35507.41   -0.37 0.715 -0.23  0.16
+## occupService and sales workers                             -0.04       0.09 35512.89   -0.45 0.656 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35524.34   -0.65 0.516 -0.24  0.12
+## occupTechnicians and associate professionals               -0.03       0.09 35507.07   -0.38 0.704 -0.20  0.14
+## occupUnemployed                                            -0.03       0.11 35524.45   -0.24 0.811 -0.24  0.18
+## age                                                         0.00       0.00 34269.44    4.48 0.000  0.00  0.00
+## educ                                                        0.01       0.00 35698.20    7.52 0.000  0.01  0.02
+## resid.lvl1                                                 -0.06       0.01 35436.62   -4.83 0.000 -0.08 -0.03
+## environ.lvl1                                                0.12       0.01    19.40   11.54 0.000  0.10  0.15
+```
+
+\newpage
+
+### Model 2 (interaction between residence and environment attitudes)
+
+
+```r
+EX5.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                gender+occup+age+educ+
+                 resid.lvl1+
+                environ.lvl1+
+                 environ.lvl1:resid.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+anova(EX5.mod1,EX5.mod2)
+```
+
+```
+## Data: dat
+## Models:
+## EX5.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX5.mod1:     gender + occup + age + educ + resid.lvl1 + environ.lvl1
+## EX5.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX5.mod2:     gender + occup + age + educ + resid.lvl1 + environ.lvl1 + 
+## EX5.mod2:     environ.lvl1:resid.lvl1
+##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
+## EX5.mod1   25 104293 104506 -52122   104243                     
+## EX5.mod2   26 104295 104516 -52122   104243 0.1275  1      0.721
+```
+
+```r
+isSingular(EX5.mod2)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(VC.EX5.mod2<-getVC(EX5.mod2))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.31212906  0.0974245472
+## 2 voting.group environ.lvl1         <NA>  0.04311736  0.0018591063
+## 3 voting.group  (Intercept) environ.lvl1  0.12866809  0.0017316382
+## 4        cntry  (Intercept)         <NA>  0.49932953  0.2493299812
+## 5        cntry environ.lvl1         <NA>  0.04002016  0.0016016135
+## 6        cntry  (Intercept) environ.lvl1 -0.04828142 -0.0009648196
+## 7     Residual         <NA>         <NA>  1.02912138  1.0590908084
+```
+
+```r
+getFE(EX5.mod2)
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.08       0.14    49.44    0.58 0.563 -0.20  0.37
+## gender                                                      0.06       0.01 35568.19    4.70 0.000  0.03  0.08
+## occupClerical support workers                              -0.04       0.09 35507.17   -0.48 0.633 -0.22  0.13
+## occupCraft and related trades workers                      -0.07       0.09 35517.36   -0.78 0.437 -0.24  0.10
+## occupElementary occupations                                 0.01       0.09 35519.21    0.12 0.902 -0.16  0.18
+## occupManagers                                              -0.02       0.09 35506.44   -0.22 0.827 -0.19  0.15
+## occupOther: Not in paid work                                0.14       0.09 35673.02    1.52 0.128 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.07       0.09 35515.08   -0.74 0.458 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35511.04    0.79 0.432 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35507.69   -0.37 0.713 -0.23  0.16
+## occupService and sales workers                             -0.04       0.09 35512.89   -0.44 0.656 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09 35524.50   -0.65 0.515 -0.24  0.12
+## occupTechnicians and associate professionals               -0.03       0.09 35507.07   -0.38 0.704 -0.20  0.14
+## occupUnemployed                                            -0.03       0.11 35524.48   -0.24 0.810 -0.24  0.18
+## age                                                         0.00       0.00 34269.03    4.48 0.000  0.00  0.00
+## educ                                                        0.01       0.00 35698.28    7.51 0.000  0.01  0.02
+## resid.lvl1                                                 -0.06       0.01 35436.44   -4.84 0.000 -0.08 -0.03
+## environ.lvl1                                                0.12       0.01    19.40   11.53 0.000  0.10  0.15
+## resid.lvl1:environ.lvl1                                     0.00       0.01 35520.29   -0.36 0.721 -0.02  0.02
+```
+
+
+\newpage
+
+## Does the association vary by occupational groups
+
+### Model 1 (Same as H1 selected model)
+
+
+```r
+EX2.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX2.mod1)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+getVC(EX2.mod1)
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30918363  0.0955945141
+## 2 voting.group environ.lvl1         <NA>  0.04317550  0.0018641240
+## 3 voting.group  (Intercept) environ.lvl1  0.12926379  0.0017255628
+## 4        cntry  (Intercept)         <NA>  0.49932256  0.2493230223
+## 5        cntry environ.lvl1         <NA>  0.04000565  0.0016004517
+## 6        cntry  (Intercept) environ.lvl1 -0.04865068 -0.0009718325
+## 7     Residual         <NA>         <NA>  1.02912455  1.0590973317
+```
+
+\newpage
+
+
+### Model 2 (Interaction between environment and occupational groups)
+
+
+```r
+EX2.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                 occup:environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+anova(EX2.mod1,EX2.mod2)
+```
+
+```
+## Data: dat
+## Models:
+## EX2.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX2.mod1:     age + gender + educ + resid + occup + environ.lvl1
+## EX2.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## EX2.mod2:     age + gender + educ + resid + occup + environ.lvl1 + occup:environ.lvl1
+##          npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)   
+## EX2.mod1   25 104289 104502 -52120   104239                        
+## EX2.mod2   37 104281 104594 -52103   104207 32.836 12   0.001027 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+isSingular(EX2.mod2)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+getVC(EX2.mod2)
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30949953  0.0957899604
+## 2 voting.group environ.lvl1         <NA>  0.04210546  0.0017728693
+## 3 voting.group  (Intercept) environ.lvl1  0.09193784  0.0011980989
+## 4        cntry  (Intercept)         <NA>  0.49892466  0.2489258209
+## 5        cntry environ.lvl1         <NA>  0.03929672  0.0015442324
+## 6        cntry  (Intercept) environ.lvl1 -0.03786228 -0.0007423317
+## 7     Residual         <NA>         <NA>  1.02867966  1.0581818352
+```
+
+\newpage
+
+#### Marginal effects for each occupation group
+
+
+```r
+EX2.mod2.trends<-emtrends(EX2.mod2,specs = c("occup"),var=c("environ.lvl1"))
+(EX2.mod2.trends.tab<-data.frame(EX2.mod2.trends))
+```
+
+```
+##                                                 occup environ.lvl1.trend         SE  df   asymp.LCL asymp.UCL
+## 1                                        Armed forces        0.002458622 0.07237495 Inf -0.13939367 0.1443109
+## 2                            Clerical support workers        0.171992561 0.01883320 Inf  0.13508017 0.2089050
+## 3                    Craft and related trades workers        0.119880759 0.01694750 Inf  0.08666427 0.1530972
+## 4                              Elementary occupations        0.101679221 0.01877408 Inf  0.06488271 0.1384757
+## 5                                            Managers        0.081133954 0.01964255 Inf  0.04263527 0.1196326
+## 6                             Other: Not in paid work        0.159899211 0.02207025 Inf  0.11664232 0.2031561
+## 7         Plant and machine operators, and assemblers        0.102839704 0.01985327 Inf  0.06392801 0.1417514
+## 8                                       Professionals        0.140211289 0.01480285 Inf  0.11119823 0.1692243
+## 9                                             Retired        0.131422064 0.03913153 Inf  0.05472567 0.2081185
+## 10                          Service and sales workers        0.110732091 0.01505900 Inf  0.08121700 0.1402472
+## 11 Skilled agricultural, forestry and fishery workers        0.121043544 0.03187536 Inf  0.05856899 0.1835181
+## 12            Technicians and associate professionals        0.130837107 0.01590712 Inf  0.09965973 0.1620145
+## 13                                         Unemployed        0.007406265 0.05474532 Inf -0.09989260 0.1147051
+```
+
+```r
+EX2.mod2.trends.tab$p<-
+  2*(1-pnorm(abs(EX2.mod2.trends.tab$environ.lvl1.trend/
+                   EX2.mod2.trends.tab$SE)))
+EX2.mod2.trends.tab$adj.p<-
+  p.adjust(EX2.mod2.trends.tab$p,method="holm")
+
+EX2.mod2.trends.tab<-
+  cbind(group=EX2.mod2.trends.tab[,1],
+        round(EX2.mod2.trends.tab[,c(2,3)],2),
+        round(EX2.mod2.trends.tab[,c(7,8)],4),
+        round(EX2.mod2.trends.tab[,c(5,6)],2))
+EX2.mod2.trends.tab
+```
+
+```
+##                                                 group environ.lvl1.trend   SE      p  adj.p asymp.LCL asymp.UCL
+## 1                                        Armed forces               0.00 0.07 0.9729 1.0000     -0.14      0.14
+## 2                            Clerical support workers               0.17 0.02 0.0000 0.0000      0.14      0.21
+## 3                    Craft and related trades workers               0.12 0.02 0.0000 0.0000      0.09      0.15
+## 4                              Elementary occupations               0.10 0.02 0.0000 0.0000      0.06      0.14
+## 5                                            Managers               0.08 0.02 0.0000 0.0002      0.04      0.12
+## 6                             Other: Not in paid work               0.16 0.02 0.0000 0.0000      0.12      0.20
+## 7         Plant and machine operators, and assemblers               0.10 0.02 0.0000 0.0000      0.06      0.14
+## 8                                       Professionals               0.14 0.01 0.0000 0.0000      0.11      0.17
+## 9                                             Retired               0.13 0.04 0.0008 0.0024      0.05      0.21
+## 10                          Service and sales workers               0.11 0.02 0.0000 0.0000      0.08      0.14
+## 11 Skilled agricultural, forestry and fishery workers               0.12 0.03 0.0001 0.0006      0.06      0.18
+## 12            Technicians and associate professionals               0.13 0.02 0.0000 0.0000      0.10      0.16
+## 13                                         Unemployed               0.01 0.05 0.8924 1.0000     -0.10      0.11
+```
+
+```r
+#contrast for all groups against mean of other groups
+contrast(EX2.mod2.trends, "del.eff", by = NULL,adjust=c("holm"))
+```
+
+```
+##  contrast                                                  estimate     SE  df z.ratio p.value
+##  Armed forces effect                                       -0.11246 0.0721 Inf -1.559  0.9523 
+##  Clerical support workers effect                            0.07120 0.0187 Inf  3.806  0.0018 
+##  Craft and related trades workers effect                    0.01474 0.0168 Inf  0.876  1.0000 
+##  Elementary occupations effect                             -0.00498 0.0186 Inf -0.267  1.0000 
+##  Managers effect                                           -0.02723 0.0196 Inf -1.392  1.0000 
+##  Other: Not in paid work effect                             0.05810 0.0220 Inf  2.639  0.0999 
+##  Plant and machine operators, and assemblers effect        -0.00372 0.0197 Inf -0.188  1.0000 
+##  Professionals effect                                       0.03677 0.0148 Inf  2.491  0.1402 
+##  Retired effect                                             0.02725 0.0389 Inf  0.700  1.0000 
+##  Service and sales workers effect                           0.00483 0.0149 Inf  0.324  1.0000 
+##  Skilled agricultural, forestry and fishery workers effect  0.01600 0.0318 Inf  0.504  1.0000 
+##  Technicians and associate professionals effect             0.02661 0.0158 Inf  1.683  0.8310 
+##  Unemployed effect                                         -0.10710 0.0545 Inf -1.965  0.4940 
+## 
+## Results are averaged over the levels of: gender, resid 
+## Degrees-of-freedom method: asymptotic 
+## P value adjustment: holm method for 13 tests
+```
+
+
+
+
+
+
+
+\newpage
+
+
+
+# Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
+
+Omit missing values on political interest item
+
+
+```r
+dat.H5.intr<-dat %>%
+  filter(!is.na(polintr))
+```
+
+### Model 1: without interactions (only main effects)
+
+
+```r
+H5.exp.intr.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+isSingular(H5.exp.intr.mod1)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(FE.H5.exp.intr.mod1<-getFE(H5.exp.intr.mod1))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.37    0.50 0.616 -0.21  0.36
+## age                                                         0.00       0.00 34011.21    3.27 0.001  0.00  0.00
+## gender                                                      0.07       0.01 35529.43    5.93 0.000  0.05  0.09
+## educ                                                        0.01       0.00 35634.84    6.12 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35598.12   -4.98 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35472.39   -0.47 0.638 -0.21  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35482.31   -0.69 0.488 -0.23  0.11
+## occupElementary occupations                                 0.02       0.09 35484.65    0.26 0.795 -0.15  0.20
+## occupManagers                                              -0.03       0.09 35471.30   -0.29 0.772 -0.20  0.15
+## occupOther: Not in paid work                                0.14       0.09 35638.43    1.58 0.114 -0.03  0.32
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35480.18   -0.68 0.497 -0.23  0.11
+## occupProfessionals                                          0.07       0.09 35475.86    0.75 0.454 -0.11  0.24
+## occupRetired                                               -0.03       0.10 35473.15   -0.30 0.768 -0.22  0.16
+## occupService and sales workers                             -0.03       0.09 35478.05   -0.37 0.708 -0.20  0.14
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35487.02   -0.57 0.569 -0.24  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35471.93   -0.38 0.702 -0.20  0.14
+## occupUnemployed                                            -0.01       0.11 35488.15   -0.13 0.898 -0.22  0.20
+## environ.lvl1                                                0.12       0.01    19.47   11.55 0.000  0.10  0.14
+## polintr.lvl1                                                0.06       0.01 35520.18    8.76 0.000  0.05  0.08
+```
+
+```r
+(VC.H5.exp.intr.mod1<-getVC(H5.exp.intr.mod1))
+```
+
+```
+##            grp         var1         var2      est_SD      est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30858043  0.095221882
+## 2 voting.group environ.lvl1         <NA>  0.04247065  0.001803756
+## 3 voting.group  (Intercept) environ.lvl1  0.09775183  0.001281098
+## 4        cntry  (Intercept)         <NA>  0.49938803  0.249388401
+## 5        cntry environ.lvl1         <NA>  0.03885202  0.001509479
+## 6        cntry  (Intercept) environ.lvl1 -0.06809065 -0.001321111
+## 7     Residual         <NA>         <NA>  1.02785526  1.056486439
+```
+
+\newpage
+
+### Model 2: Level-1 interaction between environmental attitudes and political polintr
+
+
+```r
+H5.exp.intr.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod2)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+anova(H5.exp.intr.mod1,H5.exp.intr.mod2)
+```
+
+```
+## Data: dat.H5.intr
+## Models:
+## H5.exp.intr.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## H5.exp.intr.mod1:     age + gender + educ + resid + occup + environ.lvl1 + polintr.lvl1
+## H5.exp.intr.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## H5.exp.intr.mod2:     age + gender + educ + resid + occup + environ.lvl1 + polintr.lvl1 + 
+## H5.exp.intr.mod2:     environ.lvl1:polintr.lvl1
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)  
+## H5.exp.intr.mod1   26 104091 104311 -52019   104039                       
+## H5.exp.intr.mod2   27 104087 104316 -52016   104033 6.1174  1    0.01339 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+(FE.H5.exp.intr.mod2<-getFE(H5.exp.intr.mod2))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.40    0.49 0.626 -0.22  0.36
+## age                                                         0.00       0.00 33996.51    3.24 0.001  0.00  0.00
+## gender                                                      0.07       0.01 35529.97    5.95 0.000  0.05  0.09
+## educ                                                        0.01       0.00 35634.15    6.12 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35598.62   -4.95 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35472.67   -0.46 0.645 -0.21  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35482.63   -0.68 0.495 -0.23  0.11
+## occupElementary occupations                                 0.02       0.09 35484.93    0.27 0.791 -0.15  0.20
+## occupManagers                                              -0.03       0.09 35471.55   -0.28 0.776 -0.20  0.15
+## occupOther: Not in paid work                                0.14       0.09 35638.81    1.59 0.111 -0.03  0.32
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35480.48   -0.67 0.505 -0.23  0.11
+## occupProfessionals                                          0.07       0.09 35476.12    0.75 0.451 -0.11  0.24
+## occupRetired                                               -0.03       0.10 35473.40   -0.29 0.770 -0.22  0.16
+## occupService and sales workers                             -0.03       0.09 35478.36   -0.36 0.717 -0.20  0.14
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35487.38   -0.55 0.579 -0.23  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35472.25   -0.37 0.713 -0.20  0.14
+## occupUnemployed                                            -0.01       0.11 35488.44   -0.12 0.908 -0.22  0.20
+## environ.lvl1                                                0.12       0.01    19.48   11.51 0.000  0.10  0.14
+## polintr.lvl1                                                0.06       0.01 35520.65    8.81 0.000  0.05  0.08
+## environ.lvl1:polintr.lvl1                                   0.01       0.01 35513.73    2.47 0.013  0.00  0.02
+```
+
+```r
+(VC.H5.exp.intr.mod2<-getVC(H5.exp.intr.mod2))
+```
+
+```
+##            grp         var1         var2      est_SD      est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30807908  0.094912721
+## 2 voting.group environ.lvl1         <NA>  0.04244597  0.001801661
+## 3 voting.group  (Intercept) environ.lvl1  0.09783966  0.001279421
+## 4        cntry  (Intercept)         <NA>  0.49915606  0.249156769
+## 5        cntry environ.lvl1         <NA>  0.03879048  0.001504702
+## 6        cntry  (Intercept) environ.lvl1 -0.07185366 -0.001391267
+## 7     Residual         <NA>         <NA>  1.02777890  1.056329472
+```
+
+\newpage
+
+### Model 3: Level-1 interaction between environmental attitudes and political polintr, allow polintr effect to vary between voting groups and countries
+
+
+```r
+H5.exp.intr.mod3<-lmer(refugees~(environ.lvl1+polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.intr.mod3)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+anova(H5.exp.intr.mod2,H5.exp.intr.mod3)
+```
+
+```
+## Data: dat.H5.intr
+## Models:
+## H5.exp.intr.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## H5.exp.intr.mod2:     age + gender + educ + resid + occup + environ.lvl1 + polintr.lvl1 + 
+## H5.exp.intr.mod2:     environ.lvl1:polintr.lvl1
+## H5.exp.intr.mod3: refugees ~ (environ.lvl1 + polintr.lvl1 | voting.group) + (environ.lvl1 + 
+## H5.exp.intr.mod3:     polintr.lvl1 | cntry) + age + gender + educ + resid + occup + 
+## H5.exp.intr.mod3:     environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)    
+## H5.exp.intr.mod2   27 104087 104316 -52016   104033                         
+## H5.exp.intr.mod3   33 104035 104315 -51985   103969 63.403  6  9.134e-12 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+(FE.H5.exp.intr.mod3<-getFE(H5.exp.intr.mod3))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.39    0.48 0.632 -0.22  0.35
+## age                                                         0.00       0.00 33995.67    3.23 0.001  0.00  0.00
+## gender                                                      0.07       0.01 35515.56    5.88 0.000  0.05  0.09
+## educ                                                        0.01       0.00 35576.48    5.93 0.000  0.01  0.01
+## resid                                                      -0.06       0.01 35562.47   -4.97 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35436.79   -0.45 0.650 -0.21  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35444.83   -0.66 0.510 -0.23  0.11
+## occupElementary occupations                                 0.03       0.09 35444.42    0.28 0.776 -0.15  0.20
+## occupManagers                                              -0.02       0.09 35438.98   -0.24 0.811 -0.19  0.15
+## occupOther: Not in paid work                                0.15       0.09 35605.45    1.64 0.101 -0.03  0.33
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35448.35   -0.65 0.512 -0.23  0.12
+## occupProfessionals                                          0.07       0.09 35441.87    0.76 0.448 -0.10  0.24
+## occupRetired                                               -0.03       0.10 35432.14   -0.26 0.794 -0.22  0.17
+## occupService and sales workers                             -0.03       0.09 35438.92   -0.32 0.749 -0.20  0.14
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35455.55   -0.52 0.600 -0.23  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35436.62   -0.35 0.725 -0.20  0.14
+## occupUnemployed                                            -0.01       0.11 35458.28   -0.09 0.926 -0.22  0.20
+## environ.lvl1                                                0.12       0.01    19.47   11.41 0.000  0.10  0.14
+## polintr.lvl1                                                0.07       0.01    20.77    4.75 0.000  0.04  0.09
+## environ.lvl1:polintr.lvl1                                   0.01       0.01 35490.32    2.43 0.015  0.00  0.02
+```
+
+```r
+(VC.H5.exp.intr.mod3<-getVC(H5.exp.intr.mod3))
+```
+
+```
+##             grp         var1         var2      est_SD       est_SD2
+## 1  voting.group  (Intercept)         <NA>  0.30904222  0.0955070913
+## 2  voting.group environ.lvl1         <NA>  0.04340784  0.0018842405
+## 3  voting.group polintr.lvl1         <NA>  0.07126646  0.0050789082
+## 4  voting.group  (Intercept) environ.lvl1  0.03839805  0.0005151042
+## 5  voting.group  (Intercept) polintr.lvl1  0.45989618  0.0101289118
+## 6  voting.group environ.lvl1 polintr.lvl1  0.05063037  0.0001566262
+## 7         cntry  (Intercept)         <NA>  0.49869049  0.2486922002
+## 8         cntry environ.lvl1         <NA>  0.03853467  0.0014849210
+## 9         cntry polintr.lvl1         <NA>  0.04683406  0.0021934290
+## 10        cntry  (Intercept) environ.lvl1 -0.09025503 -0.0017344197
+## 11        cntry  (Intercept) polintr.lvl1  0.45309660  0.0105823878
+## 12        cntry environ.lvl1 polintr.lvl1  0.02386250  0.0000430655
+## 13     Residual         <NA>         <NA>  1.02554419  1.0517408823
+```
+
+
+\newpage
+
+### Model 4: Allow the level-1 interaction to vary between voting groups and countries
+
+
+```r
+H5.exp.intr.mod4<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+
+                   environ.lvl1:polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1+
+                   environ.lvl1:polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```r
+isSingular(H5.exp.intr.mod4)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.intr.mod3,H5.exp.intr.mod4)
+```
+
+```
+## Data: dat.H5.intr
+## Models:
+## H5.exp.intr.mod3: refugees ~ (environ.lvl1 + polintr.lvl1 | voting.group) + (environ.lvl1 + 
+## H5.exp.intr.mod3:     polintr.lvl1 | cntry) + age + gender + educ + resid + occup + 
+## H5.exp.intr.mod3:     environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1
+## H5.exp.intr.mod4: refugees ~ (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod4:     voting.group) + (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod4:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.intr.mod4:     polintr.lvl1 + environ.lvl1:polintr.lvl1
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
+## H5.exp.intr.mod3   33 104035 104315 -51985   103969                     
+## H5.exp.intr.mod4   41 104043 104391 -51981   103961 7.8403  8     0.4492
+```
+
+```r
+(FE.H5.exp.intr.mod4<-getFE(H5.exp.intr.mod4))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.40    0.48 0.630 -0.22  0.35
+## age                                                         0.00       0.00 33970.60    3.25 0.001  0.00  0.00
+## gender                                                      0.07       0.01 35497.68    5.88 0.000  0.05  0.09
+## educ                                                        0.01       0.00 35544.12    5.94 0.000  0.01  0.01
+## resid                                                      -0.06       0.01 35556.74   -4.97 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35421.40   -0.47 0.642 -0.21  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35432.01   -0.67 0.502 -0.23  0.11
+## occupElementary occupations                                 0.02       0.09 35430.94    0.28 0.782 -0.15  0.20
+## occupManagers                                              -0.02       0.09 35417.72   -0.24 0.808 -0.19  0.15
+## occupOther: Not in paid work                                0.15       0.09 35600.69    1.64 0.102 -0.03  0.33
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35430.70   -0.66 0.506 -0.23  0.11
+## occupProfessionals                                          0.06       0.09 35422.24    0.74 0.457 -0.11  0.24
+## occupRetired                                               -0.02       0.10 35422.55   -0.25 0.803 -0.22  0.17
+## occupService and sales workers                             -0.03       0.09 35424.90   -0.33 0.741 -0.20  0.14
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35439.06   -0.53 0.595 -0.23  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35418.90   -0.36 0.717 -0.20  0.14
+## occupUnemployed                                            -0.01       0.11 35456.40   -0.09 0.926 -0.22  0.20
+## environ.lvl1                                                0.12       0.01    19.67   11.49 0.000  0.10  0.14
+## polintr.lvl1                                                0.07       0.01    20.83    4.75 0.000  0.04  0.09
+## environ.lvl1:polintr.lvl1                                   0.01       0.01    56.55    1.97 0.054  0.00  0.03
+```
+
+```r
+(VC.H5.exp.intr.mod4<-getVC(H5.exp.intr.mod4))
+```
+
+```
+##             grp                      var1                      var2       est_SD       est_SD2
+## 1  voting.group               (Intercept)                      <NA>  0.308237181  9.501016e-02
+## 2  voting.group              environ.lvl1                      <NA>  0.043365299  1.880549e-03
+## 3  voting.group              polintr.lvl1                      <NA>  0.071909474  5.170972e-03
+## 4  voting.group environ.lvl1:polintr.lvl1                      <NA>  0.036300898  1.317755e-03
+## 5  voting.group               (Intercept)              environ.lvl1  0.040243268  5.379236e-04
+## 6  voting.group               (Intercept)              polintr.lvl1  0.455278655  1.009133e-02
+## 7  voting.group               (Intercept) environ.lvl1:polintr.lvl1  0.156609524  1.752349e-03
+## 8  voting.group              environ.lvl1              polintr.lvl1  0.047988227  1.496453e-04
+## 9  voting.group              environ.lvl1 environ.lvl1:polintr.lvl1 -0.235402468 -3.705704e-04
+## 10 voting.group              polintr.lvl1 environ.lvl1:polintr.lvl1 -0.157191539 -4.103294e-04
+## 11        cntry               (Intercept)                      <NA>  0.498544030  2.485461e-01
+## 12        cntry              environ.lvl1                      <NA>  0.038211064  1.460085e-03
+## 13        cntry              polintr.lvl1                      <NA>  0.046859579  2.195820e-03
+## 14        cntry environ.lvl1:polintr.lvl1                      <NA>  0.009102557  8.285654e-05
+## 15        cntry               (Intercept)              environ.lvl1 -0.080477026 -1.533079e-03
+## 16        cntry               (Intercept)              polintr.lvl1  0.456603483  1.066697e-02
+## 17        cntry               (Intercept) environ.lvl1:polintr.lvl1  0.037595397  1.706089e-04
+## 18        cntry              environ.lvl1              polintr.lvl1  0.039019656  6.986682e-05
+## 19        cntry              environ.lvl1 environ.lvl1:polintr.lvl1  0.955389570  3.323021e-04
+## 20        cntry              polintr.lvl1 environ.lvl1:polintr.lvl1  0.331449878  1.413773e-04
+## 21     Residual                      <NA>                      <NA>  1.024901814  1.050424e+00
+```
+
+```r
+theta <- getME(H5.exp.intr.mod4,"theta")
+
+## diagonal elements are identifiable because they are fitted
+##  with a lower bound of zero ...
+diag.element <- getME(H5.exp.intr.mod4,"lower")==0
+any(theta[diag.element]<1e-5)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+round(theta,5)
+```
+
+```
+##                            voting.group.(Intercept)               voting.group.environ.lvl1.(Intercept) 
+##                                             0.30075                                             0.00170 
+##               voting.group.polintr.lvl1.(Intercept)  voting.group.environ.lvl1:polintr.lvl1.(Intercept) 
+##                                             0.03194                                             0.00555 
+##                           voting.group.environ.lvl1              voting.group.polintr.lvl1.environ.lvl1 
+##                                             0.04228                                             0.00208 
+## voting.group.environ.lvl1:polintr.lvl1.environ.lvl1                           voting.group.polintr.lvl1 
+##                                            -0.00857                                             0.06243 
+## voting.group.environ.lvl1:polintr.lvl1.polintr.lvl1              voting.group.environ.lvl1:polintr.lvl1 
+##                                            -0.00881                                             0.03275 
+##                                   cntry.(Intercept)                      cntry.environ.lvl1.(Intercept) 
+##                                             0.48643                                            -0.00300 
+##                      cntry.polintr.lvl1.(Intercept)         cntry.environ.lvl1:polintr.lvl1.(Intercept) 
+##                                             0.02088                                             0.00033 
+##                                  cntry.environ.lvl1                     cntry.polintr.lvl1.environ.lvl1 
+##                                             0.03716                                             0.00348 
+##        cntry.environ.lvl1:polintr.lvl1.environ.lvl1                                  cntry.polintr.lvl1 
+##                                             0.00854                                             0.04053 
+##        cntry.environ.lvl1:polintr.lvl1.polintr.lvl1                     cntry.environ.lvl1:polintr.lvl1 
+##                                             0.00242                                             0.00000
+```
+
+\newpage
+
+### Model 5: Enter voting group variable and both two-way interactions with environment and polintr
+
+
+```r
+H5.exp.intr.mod5<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polintr.lvl1:all.parties.lvl2
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```r
+isSingular(H5.exp.intr.mod5)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.intr.mod4,H5.exp.intr.mod5)
+```
+
+```
+## Data: dat.H5.intr
+## Models:
+## H5.exp.intr.mod4: refugees ~ (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod4:     voting.group) + (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod4:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.intr.mod4:     polintr.lvl1 + environ.lvl1:polintr.lvl1
+## H5.exp.intr.mod5: refugees ~ (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod5:     voting.group) + (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod5:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.intr.mod5:     polintr.lvl1 + environ.lvl1:polintr.lvl1 + all.parties.lvl2 + 
+## H5.exp.intr.mod5:     environ.lvl1:all.parties.lvl2 + polintr.lvl1:all.parties.lvl2
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)    
+## H5.exp.intr.mod4   41 104043 104391 -51981   103961                         
+## H5.exp.intr.mod5   68 103890 104467 -51877   103754 207.21 27  < 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+(FE.H5.exp.intr.mod5<-getFE(H5.exp.intr.mod5))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                -0.47       0.14    61.98   -3.26 0.002 -0.76 -0.18
+## age                                                         0.00       0.00 35616.41    3.63 0.000  0.00  0.00
+## gender                                                      0.07       0.01 35528.36    5.93 0.000  0.05  0.09
+## educ                                                        0.01       0.00 35592.31    5.93 0.000  0.01  0.01
+## resid                                                      -0.06       0.01 35609.54   -4.86 0.000 -0.08 -0.03
+## occupClerical support workers                              -0.04       0.09 35481.31   -0.48 0.629 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35494.04   -0.68 0.499 -0.23  0.11
+## occupElementary occupations                                 0.02       0.09 35487.25    0.23 0.818 -0.15  0.19
+## occupManagers                                              -0.02       0.09 35477.54   -0.27 0.789 -0.20  0.15
+## occupOther: Not in paid work                                0.13       0.09 35545.97    1.43 0.153 -0.05  0.31
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35494.29   -0.68 0.495 -0.23  0.11
+## occupProfessionals                                          0.06       0.09 35482.88    0.71 0.476 -0.11  0.23
+## occupRetired                                               -0.03       0.10 35469.24   -0.28 0.783 -0.22  0.16
+## occupService and sales workers                             -0.03       0.09 35484.58   -0.34 0.731 -0.20  0.14
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35505.47   -0.56 0.573 -0.23  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35480.34   -0.38 0.706 -0.20  0.14
+## occupUnemployed                                            -0.02       0.11 35499.21   -0.16 0.872 -0.23  0.19
+## environ.lvl1                                                0.11       0.02   109.59    5.58 0.000  0.07  0.15
+## polintr.lvl1                                               -0.02       0.03   123.60   -0.85 0.399 -0.08  0.03
+## all.parties.lvl2Did not vote                                0.44       0.06   182.55    6.92 0.000  0.31  0.57
+## all.parties.lvl2Don't know                                  0.42       0.07   267.91    5.96 0.000  0.28  0.56
+## all.parties.lvl2Invalid vote                                0.44       0.36  1125.55    1.24 0.214 -0.26  1.15
+## all.parties.lvl2NE age                                      0.72       0.07   272.47   10.15 0.000  0.58  0.86
+## all.parties.lvl2NE citizen                                  0.86       0.08   268.53   11.26 0.000  0.71  1.01
+## all.parties.lvl2NE other                                    0.71       0.10   653.08    7.32 0.000  0.52  0.91
+## all.parties.lvl2No answer                                   0.57       0.37  1352.13    1.52 0.128 -0.16  1.31
+## all.parties.lvl2Other party                                 0.55       0.05   230.27   11.33 0.000  0.45  0.64
+## all.parties.lvl2Pro-environment party                       0.92       0.06   256.09   14.11 0.000  0.79  1.04
+## environ.lvl1:polintr.lvl1                                   0.01       0.01    54.50    1.80 0.077  0.00  0.03
+## environ.lvl1:all.parties.lvl2Did not vote                   0.00       0.02    87.38   -0.05 0.956 -0.05  0.04
+## environ.lvl1:all.parties.lvl2Don't know                     0.03       0.03   340.06    0.75 0.456 -0.04  0.09
+## environ.lvl1:all.parties.lvl2Invalid vote                   0.05       0.39 24998.32    0.12 0.901 -0.71  0.81
+## environ.lvl1:all.parties.lvl2NE age                         0.04       0.03   238.87    1.24 0.217 -0.02  0.10
+## environ.lvl1:all.parties.lvl2NE citizen                    -0.04       0.03   236.05   -1.20 0.231 -0.11  0.03
+## environ.lvl1:all.parties.lvl2NE other                       0.03       0.06  1206.78    0.58 0.560 -0.08  0.14
+## environ.lvl1:all.parties.lvl2No answer                      0.22       0.23  7135.17    0.96 0.335 -0.23  0.67
+## environ.lvl1:all.parties.lvl2Other party                    0.02       0.02   135.62    0.79 0.433 -0.02  0.05
+## environ.lvl1:all.parties.lvl2Pro-environment party          0.01       0.03   199.37    0.30 0.766 -0.05  0.07
+## polintr.lvl1:all.parties.lvl2Did not vote                   0.08       0.03    95.64    2.47 0.015  0.02  0.14
+## polintr.lvl1:all.parties.lvl2Don't know                     0.10       0.05   426.05    2.08 0.038  0.01  0.20
+## polintr.lvl1:all.parties.lvl2Invalid vote                   0.20       0.35 10239.75    0.58 0.564 -0.48  0.89
+## polintr.lvl1:all.parties.lvl2NE age                         0.02       0.04   296.63    0.55 0.585 -0.06  0.11
+## polintr.lvl1:all.parties.lvl2NE citizen                     0.04       0.04   213.48    0.98 0.326 -0.04  0.13
+## polintr.lvl1:all.parties.lvl2NE other                       0.02       0.08  1261.73    0.23 0.820 -0.14  0.18
+## polintr.lvl1:all.parties.lvl2No answer                     -0.24       0.70 31717.96   -0.34 0.735 -1.60  1.13
+## polintr.lvl1:all.parties.lvl2Other party                    0.10       0.03   141.88    3.82 0.000  0.05  0.16
+## polintr.lvl1:all.parties.lvl2Pro-environment party          0.17       0.04   250.77    4.31 0.000  0.09  0.25
+```
+
+```r
+(VC.H5.exp.intr.mod5<-getVC(H5.exp.intr.mod5))
+```
+
+```
+##             grp                      var1                      var2       est_SD       est_SD2
+## 1  voting.group               (Intercept)                      <NA>  0.197807826  3.912794e-02
+## 2  voting.group              environ.lvl1                      <NA>  0.041731515  1.741519e-03
+## 3  voting.group              polintr.lvl1                      <NA>  0.055426253  3.072070e-03
+## 4  voting.group environ.lvl1:polintr.lvl1                      <NA>  0.035181558  1.237742e-03
+## 5  voting.group               (Intercept)              environ.lvl1  0.017532777  1.447299e-04
+## 6  voting.group               (Intercept)              polintr.lvl1  0.276283508  3.029102e-03
+## 7  voting.group               (Intercept) environ.lvl1:polintr.lvl1 -0.001200754 -8.356269e-06
+## 8  voting.group              environ.lvl1              polintr.lvl1 -0.035818963 -8.285003e-05
+## 9  voting.group              environ.lvl1 environ.lvl1:polintr.lvl1 -0.167315108 -2.456486e-04
+## 10 voting.group              polintr.lvl1 environ.lvl1:polintr.lvl1 -0.277168727 -5.404740e-04
+## 11        cntry               (Intercept)                      <NA>  0.481871385  2.322000e-01
+## 12        cntry              environ.lvl1                      <NA>  0.039364305  1.549549e-03
+## 13        cntry              polintr.lvl1                      <NA>  0.049560668  2.456260e-03
+## 14        cntry environ.lvl1:polintr.lvl1                      <NA>  0.009643158  9.299049e-05
+## 15        cntry               (Intercept)              environ.lvl1 -0.083856128 -1.590628e-03
+## 16        cntry               (Intercept)              polintr.lvl1  0.401380310  9.585711e-03
+## 17        cntry               (Intercept) environ.lvl1:polintr.lvl1  0.022251889  1.033992e-04
+## 18        cntry              environ.lvl1              polintr.lvl1  0.118916991  2.319977e-04
+## 19        cntry              environ.lvl1 environ.lvl1:polintr.lvl1  0.974694665  3.699904e-04
+## 20        cntry              polintr.lvl1 environ.lvl1:polintr.lvl1  0.337502509  1.612996e-04
+## 21     Residual                      <NA>                      <NA>  1.024870011  1.050359e+00
+```
+
+\newpage
+
+#### Look among which voting group there is strongest association between polintr and refugee attitudes
+
+
+```r
+H5.exp.intr.mod5.trends<-emtrends(H5.exp.intr.mod5,specs = c("all.parties.lvl2"),var=c("polintr.lvl1"))
+```
+
+```
+## Note: D.f. calculations have been disabled because the number of observations exceeds 3000.
+## To enable adjustments, add the argument 'pbkrtest.limit = 35702' (or larger)
+## [or, globally, 'set emm_options(pbkrtest.limit = 35702)' or larger];
+## but be warned that this may result in large computation time and memory use.
+```
+
+```
+## Note: D.f. calculations have been disabled because the number of observations exceeds 3000.
+## To enable adjustments, add the argument 'lmerTest.limit = 35702' (or larger)
+## [or, globally, 'set emm_options(lmerTest.limit = 35702)' or larger];
+## but be warned that this may result in large computation time and memory use.
+```
+
+```r
+(H5.exp.intr.mod5.trends.tab<-data.frame(H5.exp.intr.mod5.trends))
+```
+
+```
+##          all.parties.lvl2 polintr.lvl1.trend         SE  df    asymp.LCL  asymp.UCL
+## 1  Anti-immigration party      -0.0227014845 0.02685978 Inf -0.075345689 0.02994272
+## 2            Did not vote       0.0546378034 0.02260701 Inf  0.010328875 0.09894673
+## 3              Don't know       0.0782603751 0.04349991 Inf -0.006997881 0.16351863
+## 4            Invalid vote       0.1790907236 0.34924487 Inf -0.505416639 0.86359809
+## 5                  NE age       0.0007101869 0.03698999 Inf -0.071788858 0.07320923
+## 6              NE citizen       0.0211170667 0.03896882 Inf -0.055260415 0.09749455
+## 7                NE other      -0.0039245266 0.07961813 Inf -0.159973185 0.15212413
+## 8               No answer      -0.2589513708 0.69734588 Inf -1.625724177 1.10782144
+## 9             Other party       0.0811356354 0.01628700 Inf  0.049213706 0.11305756
+## 10  Pro-environment party       0.1511936282 0.03394109 Inf  0.084670320 0.21771694
+```
+
+```r
+H5.exp.intr.mod5.trends.tab$p<-
+  2*(1-pnorm(abs(H5.exp.intr.mod5.trends.tab$polintr.lvl1.trend/
+                   H5.exp.intr.mod5.trends.tab$SE)))
+H5.exp.intr.mod5.trends.tab$adj.p<-
+  p.adjust(H5.exp.intr.mod5.trends.tab$p,method="holm")
+
+H5.exp.intr.mod5.trends.tab<-
+  cbind(group=H5.exp.intr.mod5.trends.tab[,1],
+      round(H5.exp.intr.mod5.trends.tab[,c(2,3)],2),
+      round(H5.exp.intr.mod5.trends.tab[,c(7,8)],4),
+      round(H5.exp.intr.mod5.trends.tab[,c(5,6)],2))
+H5.exp.intr.mod5.trends.tab
+```
+
+```
+##                     group polintr.lvl1.trend   SE      p  adj.p asymp.LCL asymp.UCL
+## 1  Anti-immigration party              -0.02 0.03 0.3980 1.0000     -0.08      0.03
+## 2            Did not vote               0.05 0.02 0.0157 0.1252      0.01      0.10
+## 3              Don't know               0.08 0.04 0.0720 0.5040     -0.01      0.16
+## 4            Invalid vote               0.18 0.35 0.6081 1.0000     -0.51      0.86
+## 5                  NE age               0.00 0.04 0.9847 1.0000     -0.07      0.07
+## 6              NE citizen               0.02 0.04 0.5879 1.0000     -0.06      0.10
+## 7                NE other               0.00 0.08 0.9607 1.0000     -0.16      0.15
+## 8               No answer              -0.26 0.70 0.7104 1.0000     -1.63      1.11
+## 9             Other party               0.08 0.02 0.0000 0.0000      0.05      0.11
+## 10  Pro-environment party               0.15 0.03 0.0000 0.0001      0.08      0.22
+```
+
+```r
+write.csv2(H5.exp.intr.mod5.trends.tab,"H5.exp.intr.mod5.trends.tab.csv")
+
+#contrast between anti-immigration and pro-environment
+(H5.exp.intr.contrast<-data.frame(pairs(H5.exp.intr.mod5.trends, exclude = c(2:9),reverse=T)))
+```
+
+```
+##                                         contrast  estimate         SE  df  z.ratio     p.value
+## 1 Pro-environment party - Anti-immigration party 0.1738951 0.04032848 Inf 4.311968 1.61808e-05
+```
+
+```r
+#contrast for all groups against mean of other groups
+contrast(H5.exp.intr.mod5.trends, "del.eff", by = NULL,adjust=c("none"))
+```
+
+```
+##  contrast                      estimate     SE  df z.ratio p.value
+##  Anti-immigration party effect -0.05640 0.0908 Inf -0.621  0.5345 
+##  Did not vote effect            0.02953 0.0897 Inf  0.329  0.7419 
+##  Don't know effect              0.05578 0.0970 Inf  0.575  0.5652 
+##  Invalid vote effect            0.16782 0.3578 Inf  0.469  0.6390 
+##  NE age effect                 -0.03039 0.0943 Inf -0.322  0.7473 
+##  NE citizen effect             -0.00771 0.0950 Inf -0.081  0.9353 
+##  NE other effect               -0.03553 0.1175 Inf -0.302  0.7623 
+##  No answer effect              -0.31890 0.6985 Inf -0.457  0.6480 
+##  Other party effect             0.05898 0.0883 Inf  0.668  0.5041 
+##  Pro-environment party effect   0.13682 0.0932 Inf  1.468  0.1420 
+## 
+## Results are averaged over the levels of: gender, resid, occup 
+## Degrees-of-freedom method: asymptotic
+```
+
+```r
+#contrast for three voting groups
+(H4.more.contrasts<-data.frame(pairs(H5.exp.intr.mod5.trends, 
+         exclude=c(2:8), by = NULL,adjust=c("none"),reverse=T)))
+```
+
+```
+##                                         contrast   estimate         SE  df  z.ratio     p.value
+## 1           Other party - Anti-immigration party 0.10383712 0.02716097 Inf 3.823028 1.31823e-04
+## 2 Pro-environment party - Anti-immigration party 0.17389511 0.04032848 Inf 4.311968 1.61808e-05
+## 3            Pro-environment party - Other party 0.07005799 0.03409876 Inf 2.054561 3.99214e-02
+```
+
+\newpage
+
+### Model 6: Enter three-way interaction voting group x polintr x environment attitudes
+
+
+```r
+H5.exp.intr.mod6<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|voting.group)+
+                (environ.lvl1+polintr.lvl1+environ.lvl1:polintr.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                environ.lvl1:polintr.lvl1+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polintr.lvl1:all.parties.lvl2+
+                environ.lvl1:polintr.lvl1:all.parties.lvl2
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```r
+isSingular(H5.exp.intr.mod6)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.intr.mod5,H5.exp.intr.mod6)
+```
+
+```
+## Data: dat.H5.intr
+## Models:
+## H5.exp.intr.mod5: refugees ~ (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod5:     voting.group) + (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod5:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.intr.mod5:     polintr.lvl1 + environ.lvl1:polintr.lvl1 + all.parties.lvl2 + 
+## H5.exp.intr.mod5:     environ.lvl1:all.parties.lvl2 + polintr.lvl1:all.parties.lvl2
+## H5.exp.intr.mod6: refugees ~ (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod6:     voting.group) + (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod6:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.intr.mod6:     polintr.lvl1 + environ.lvl1:polintr.lvl1 + all.parties.lvl2 + 
+## H5.exp.intr.mod6:     environ.lvl1:all.parties.lvl2 + polintr.lvl1:all.parties.lvl2 + 
+## H5.exp.intr.mod6:     environ.lvl1:polintr.lvl1:all.parties.lvl2
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
+## H5.exp.intr.mod5   68 103890 104467 -51877   103754                     
+## H5.exp.intr.mod6   77 103897 104550 -51872   103743 11.091  9     0.2695
+```
+
+```r
+(FE.H5.exp.intr.mod6<-getFE(H5.exp.intr.mod6))
+```
+
+```
+##                                                                 Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                        -0.47       0.14    62.03   -3.25 0.002 -0.76 -0.18
+## age                                                                 0.00       0.00 35620.83    3.62 0.000  0.00  0.00
+## gender                                                              0.07       0.01 35529.71    5.95 0.000  0.05  0.09
+## educ                                                                0.01       0.00 35596.16    5.91 0.000  0.01  0.01
+## resid                                                              -0.06       0.01 35609.27   -4.88 0.000 -0.08 -0.03
+## occupClerical support workers                                      -0.04       0.09 35481.74   -0.50 0.614 -0.22  0.13
+## occupCraft and related trades workers                              -0.06       0.09 35494.16   -0.69 0.488 -0.23  0.11
+## occupElementary occupations                                         0.02       0.09 35487.61    0.21 0.832 -0.15  0.19
+## occupManagers                                                      -0.03       0.09 35477.83   -0.29 0.774 -0.20  0.15
+## occupOther: Not in paid work                                        0.13       0.09 35545.94    1.41 0.157 -0.05  0.31
+## occupPlant and machine operators, and assemblers                   -0.06       0.09 35494.22   -0.70 0.482 -0.24  0.11
+## occupProfessionals                                                  0.06       0.09 35482.92    0.69 0.490 -0.11  0.23
+## occupRetired                                                       -0.03       0.10 35469.46   -0.30 0.761 -0.22  0.16
+## occupService and sales workers                                     -0.03       0.09 35484.89   -0.37 0.715 -0.20  0.14
+## occupSkilled agricultural, forestry and fishery workers            -0.05       0.09 35505.84   -0.58 0.563 -0.24  0.13
+## occupTechnicians and associate professionals                       -0.03       0.09 35480.69   -0.39 0.693 -0.21  0.14
+## occupUnemployed                                                    -0.02       0.11 35500.20   -0.16 0.872 -0.23  0.19
+## environ.lvl1                                                        0.11       0.02   109.85    5.63 0.000  0.07  0.15
+## polintr.lvl1                                                       -0.02       0.03   122.70   -0.83 0.410 -0.08  0.03
+## all.parties.lvl2Did not vote                                        0.44       0.06   182.54    6.91 0.000  0.31  0.57
+## all.parties.lvl2Don't know                                          0.42       0.07   267.96    5.93 0.000  0.28  0.56
+## all.parties.lvl2Invalid vote                                        0.44       0.36  1126.05    1.23 0.217 -0.26  1.14
+## all.parties.lvl2NE age                                              0.72       0.07   272.67   10.14 0.000  0.58  0.86
+## all.parties.lvl2NE citizen                                          0.85       0.08   268.30   11.14 0.000  0.70  1.00
+## all.parties.lvl2NE other                                            0.71       0.10   652.83    7.31 0.000  0.52  0.91
+## all.parties.lvl2No answer                                           0.58       0.37  1357.83    1.54 0.123 -0.16  1.31
+## all.parties.lvl2Other party                                         0.55       0.05   230.38   11.31 0.000  0.45  0.64
+## all.parties.lvl2Pro-environment party                               0.92       0.07   257.35   14.11 0.000  0.79  1.05
+## environ.lvl1:polintr.lvl1                                          -0.01       0.02   126.69   -0.38 0.708 -0.04  0.03
+## environ.lvl1:all.parties.lvl2Did not vote                           0.00       0.02    87.78   -0.09 0.926 -0.05  0.04
+## environ.lvl1:all.parties.lvl2Don't know                             0.02       0.03   342.47    0.70 0.484 -0.04  0.09
+## environ.lvl1:all.parties.lvl2Invalid vote                           0.04       0.39 25264.47    0.10 0.924 -0.73  0.80
+## environ.lvl1:all.parties.lvl2NE age                                 0.04       0.03   238.97    1.22 0.223 -0.02  0.10
+## environ.lvl1:all.parties.lvl2NE citizen                            -0.05       0.03   236.46   -1.39 0.166 -0.11  0.02
+## environ.lvl1:all.parties.lvl2NE other                               0.04       0.06  1205.32    0.63 0.530 -0.07  0.14
+## environ.lvl1:all.parties.lvl2No answer                              0.17       0.26 10536.40    0.65 0.514 -0.34  0.67
+## environ.lvl1:all.parties.lvl2Other party                            0.01       0.02   136.75    0.72 0.471 -0.02  0.05
+## environ.lvl1:all.parties.lvl2Pro-environment party                  0.01       0.03   199.54    0.26 0.797 -0.05  0.06
+## polintr.lvl1:all.parties.lvl2Did not vote                           0.08       0.03    94.24    2.46 0.016  0.01  0.14
+## polintr.lvl1:all.parties.lvl2Don't know                             0.10       0.05   421.96    2.04 0.042  0.00  0.20
+## polintr.lvl1:all.parties.lvl2Invalid vote                           0.21       0.35 10518.93    0.60 0.550 -0.48  0.90
+## polintr.lvl1:all.parties.lvl2NE age                                 0.02       0.04   293.07    0.56 0.578 -0.06  0.11
+## polintr.lvl1:all.parties.lvl2NE citizen                             0.04       0.04   211.95    0.80 0.423 -0.05  0.12
+## polintr.lvl1:all.parties.lvl2NE other                               0.02       0.08  1259.27    0.20 0.844 -0.15  0.18
+## polintr.lvl1:all.parties.lvl2No answer                             -0.26       0.70 31722.95   -0.38 0.707 -1.64  1.11
+## polintr.lvl1:all.parties.lvl2Other party                            0.10       0.03   140.44    3.80 0.000  0.05  0.16
+## polintr.lvl1:all.parties.lvl2Pro-environment party                  0.17       0.04   249.54    4.30 0.000  0.09  0.25
+## environ.lvl1:polintr.lvl1:all.parties.lvl2Did not vote              0.02       0.02    85.68    0.71 0.477 -0.03  0.06
+## environ.lvl1:polintr.lvl1:all.parties.lvl2Don't know                0.03       0.04   448.49    0.86 0.389 -0.04  0.11
+## environ.lvl1:polintr.lvl1:all.parties.lvl2Invalid vote              0.14       0.41 27792.84    0.34 0.736 -0.67  0.95
+## environ.lvl1:polintr.lvl1:all.parties.lvl2NE age                    0.01       0.03   364.25    0.22 0.824 -0.06  0.08
+## environ.lvl1:polintr.lvl1:all.parties.lvl2NE citizen                0.09       0.03   215.95    2.56 0.011  0.02  0.15
+## environ.lvl1:polintr.lvl1:all.parties.lvl2NE other                 -0.08       0.06  1155.29   -1.37 0.172 -0.21  0.04
+## environ.lvl1:polintr.lvl1:all.parties.lvl2No answer                 0.36       0.76 34661.69    0.47 0.637 -1.14  1.86
+## environ.lvl1:polintr.lvl1:all.parties.lvl2Other party               0.02       0.02   124.68    1.10 0.272 -0.02  0.06
+## environ.lvl1:polintr.lvl1:all.parties.lvl2Pro-environment party     0.00       0.03   258.63   -0.06 0.956 -0.06  0.06
+```
+
+```r
+(VC.H5.exp.intr.mod6<-getVC(H5.exp.intr.mod6))
+```
+
+```
+##             grp                      var1                      var2       est_SD       est_SD2
+## 1  voting.group               (Intercept)                      <NA>  0.198111360  3.924811e-02
+## 2  voting.group              environ.lvl1                      <NA>  0.041542864  1.725810e-03
+## 3  voting.group              polintr.lvl1                      <NA>  0.055319665  3.060265e-03
+## 4  voting.group environ.lvl1:polintr.lvl1                      <NA>  0.030462894  9.279879e-04
+## 5  voting.group               (Intercept)              environ.lvl1  0.009772025  8.042488e-05
+## 6  voting.group               (Intercept)              polintr.lvl1  0.278234232  3.049295e-03
+## 7  voting.group               (Intercept) environ.lvl1:polintr.lvl1 -0.005343558 -3.224861e-05
+## 8  voting.group              environ.lvl1              polintr.lvl1 -0.038065623 -8.748003e-05
+## 9  voting.group              environ.lvl1 environ.lvl1:polintr.lvl1 -0.118625456 -1.501224e-04
+## 10 voting.group              polintr.lvl1 environ.lvl1:polintr.lvl1 -0.301971679 -5.088818e-04
+## 11        cntry               (Intercept)                      <NA>  0.481662638  2.319989e-01
+## 12        cntry              environ.lvl1                      <NA>  0.039339237  1.547576e-03
+## 13        cntry              polintr.lvl1                      <NA>  0.049623564  2.462498e-03
+## 14        cntry environ.lvl1:polintr.lvl1                      <NA>  0.009958964  9.918096e-05
+## 15        cntry               (Intercept)              environ.lvl1 -0.084611697 -1.603243e-03
+## 16        cntry               (Intercept)              polintr.lvl1  0.403867631  9.653170e-03
+## 17        cntry               (Intercept) environ.lvl1:polintr.lvl1  0.040551719  1.945210e-04
+## 18        cntry              environ.lvl1              polintr.lvl1  0.128007153  2.498896e-04
+## 19        cntry              environ.lvl1 environ.lvl1:polintr.lvl1  0.966486879  3.786483e-04
+## 20        cntry              polintr.lvl1 environ.lvl1:polintr.lvl1  0.377774008  1.866956e-04
+## 21     Residual                      <NA>                      <NA>  1.024822113  1.050260e+00
+```
+
+#### Refit with manually coded level-1 interaction
+
+
+```r
+dat.H5.intr$env.intr.int<-dat.H5.intr$environ.lvl1*dat.H5.intr$polintr.lvl1
+
+H5.exp.intr.mod6<-lmer(refugees~
+                (environ.lvl1+polintr.lvl1+env.intr.int|voting.group)+
+                (environ.lvl1+polintr.lvl1+env.intr.int|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polintr.lvl1+
+                env.intr.int+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polintr.lvl1:all.parties.lvl2+
+                env.intr.int:all.parties.lvl2
+                ,data=dat.H5.intr,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```r
+isSingular(H5.exp.intr.mod6)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.intr.mod5,H5.exp.intr.mod6)
+```
+
+```
+## Data: dat.H5.intr
+## Models:
+## H5.exp.intr.mod5: refugees ~ (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod5:     voting.group) + (environ.lvl1 + polintr.lvl1 + environ.lvl1:polintr.lvl1 | 
+## H5.exp.intr.mod5:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.intr.mod5:     polintr.lvl1 + environ.lvl1:polintr.lvl1 + all.parties.lvl2 + 
+## H5.exp.intr.mod5:     environ.lvl1:all.parties.lvl2 + polintr.lvl1:all.parties.lvl2
+## H5.exp.intr.mod6: refugees ~ (environ.lvl1 + polintr.lvl1 + env.intr.int | voting.group) + 
+## H5.exp.intr.mod6:     (environ.lvl1 + polintr.lvl1 + env.intr.int | cntry) + age + 
+## H5.exp.intr.mod6:     gender + educ + resid + occup + environ.lvl1 + polintr.lvl1 + 
+## H5.exp.intr.mod6:     env.intr.int + all.parties.lvl2 + environ.lvl1:all.parties.lvl2 + 
+## H5.exp.intr.mod6:     polintr.lvl1:all.parties.lvl2 + env.intr.int:all.parties.lvl2
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
+## H5.exp.intr.mod5   68 103890 104467 -51877   103754                     
+## H5.exp.intr.mod6   77 103897 104550 -51872   103743 11.091  9     0.2695
+```
+
+```r
+(FE.H5.exp.intr.mod6<-getFE(H5.exp.intr.mod6))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                -0.47       0.14    62.03   -3.25 0.002 -0.76 -0.18
+## age                                                         0.00       0.00 35620.81    3.62 0.000  0.00  0.00
+## gender                                                      0.07       0.01 35529.71    5.95 0.000  0.05  0.09
+## educ                                                        0.01       0.00 35596.15    5.91 0.000  0.01  0.01
+## resid                                                      -0.06       0.01 35609.28   -4.88 0.000 -0.08 -0.03
+## occupClerical support workers                              -0.04       0.09 35481.74   -0.50 0.614 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35494.16   -0.69 0.488 -0.23  0.11
+## occupElementary occupations                                 0.02       0.09 35487.61    0.21 0.832 -0.15  0.19
+## occupManagers                                              -0.03       0.09 35477.83   -0.29 0.774 -0.20  0.15
+## occupOther: Not in paid work                                0.13       0.09 35545.93    1.41 0.157 -0.05  0.31
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35494.22   -0.70 0.482 -0.24  0.11
+## occupProfessionals                                          0.06       0.09 35482.93    0.69 0.490 -0.11  0.23
+## occupRetired                                               -0.03       0.10 35469.46   -0.30 0.761 -0.22  0.16
+## occupService and sales workers                             -0.03       0.09 35484.89   -0.37 0.715 -0.20  0.14
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35505.84   -0.58 0.563 -0.24  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35480.69   -0.39 0.693 -0.21  0.14
+## occupUnemployed                                            -0.02       0.11 35500.20   -0.16 0.872 -0.23  0.19
+## environ.lvl1                                                0.11       0.02   109.85    5.63 0.000  0.07  0.15
+## polintr.lvl1                                               -0.02       0.03   122.70   -0.83 0.410 -0.08  0.03
+## env.intr.int                                               -0.01       0.02   126.69   -0.38 0.708 -0.04  0.03
+## all.parties.lvl2Did not vote                                0.44       0.06   182.53    6.91 0.000  0.31  0.57
+## all.parties.lvl2Don't know                                  0.42       0.07   267.95    5.93 0.000  0.28  0.56
+## all.parties.lvl2Invalid vote                                0.44       0.36  1126.03    1.23 0.217 -0.26  1.14
+## all.parties.lvl2NE age                                      0.72       0.07   272.66   10.14 0.000  0.58  0.86
+## all.parties.lvl2NE citizen                                  0.85       0.08   268.29   11.14 0.000  0.70  1.00
+## all.parties.lvl2NE other                                    0.71       0.10   652.82    7.31 0.000  0.52  0.91
+## all.parties.lvl2No answer                                   0.58       0.37  1357.80    1.54 0.123 -0.16  1.31
+## all.parties.lvl2Other party                                 0.55       0.05   230.37   11.31 0.000  0.45  0.64
+## all.parties.lvl2Pro-environment party                       0.92       0.07   257.35   14.11 0.000  0.79  1.05
+## environ.lvl1:all.parties.lvl2Did not vote                   0.00       0.02    87.78   -0.09 0.926 -0.05  0.04
+## environ.lvl1:all.parties.lvl2Don't know                     0.02       0.03   342.46    0.70 0.484 -0.04  0.09
+## environ.lvl1:all.parties.lvl2Invalid vote                   0.04       0.39 25264.46    0.10 0.924 -0.73  0.80
+## environ.lvl1:all.parties.lvl2NE age                         0.04       0.03   238.97    1.22 0.223 -0.02  0.10
+## environ.lvl1:all.parties.lvl2NE citizen                    -0.05       0.03   236.46   -1.39 0.166 -0.11  0.02
+## environ.lvl1:all.parties.lvl2NE other                       0.04       0.06  1205.32    0.63 0.530 -0.07  0.14
+## environ.lvl1:all.parties.lvl2No answer                      0.17       0.26 10536.39    0.65 0.514 -0.34  0.67
+## environ.lvl1:all.parties.lvl2Other party                    0.01       0.02   136.75    0.72 0.471 -0.02  0.05
+## environ.lvl1:all.parties.lvl2Pro-environment party          0.01       0.03   199.54    0.26 0.797 -0.05  0.06
+## polintr.lvl1:all.parties.lvl2Did not vote                   0.08       0.03    94.24    2.46 0.016  0.01  0.14
+## polintr.lvl1:all.parties.lvl2Don't know                     0.10       0.05   421.95    2.04 0.042  0.00  0.20
+## polintr.lvl1:all.parties.lvl2Invalid vote                   0.21       0.35 10518.76    0.60 0.550 -0.48  0.90
+## polintr.lvl1:all.parties.lvl2NE age                         0.02       0.04   293.07    0.56 0.578 -0.06  0.11
+## polintr.lvl1:all.parties.lvl2NE citizen                     0.04       0.04   211.95    0.80 0.423 -0.05  0.12
+## polintr.lvl1:all.parties.lvl2NE other                       0.02       0.08  1259.25    0.20 0.844 -0.15  0.18
+## polintr.lvl1:all.parties.lvl2No answer                     -0.26       0.70 31722.87   -0.38 0.707 -1.64  1.11
+## polintr.lvl1:all.parties.lvl2Other party                    0.10       0.03   140.44    3.80 0.000  0.05  0.16
+## polintr.lvl1:all.parties.lvl2Pro-environment party          0.17       0.04   249.54    4.30 0.000  0.09  0.25
+## env.intr.int:all.parties.lvl2Did not vote                   0.02       0.02    85.68    0.71 0.477 -0.03  0.06
+## env.intr.int:all.parties.lvl2Don't know                     0.03       0.04   448.48    0.86 0.389 -0.04  0.11
+## env.intr.int:all.parties.lvl2Invalid vote                   0.14       0.41 27792.75    0.34 0.736 -0.67  0.95
+## env.intr.int:all.parties.lvl2NE age                         0.01       0.03   364.24    0.22 0.824 -0.06  0.08
+## env.intr.int:all.parties.lvl2NE citizen                     0.09       0.03   215.95    2.56 0.011  0.02  0.15
+## env.intr.int:all.parties.lvl2NE other                      -0.08       0.06  1155.27   -1.37 0.172 -0.21  0.04
+## env.intr.int:all.parties.lvl2No answer                      0.36       0.76 34661.68    0.47 0.637 -1.14  1.86
+## env.intr.int:all.parties.lvl2Other party                    0.02       0.02   124.68    1.10 0.272 -0.02  0.06
+## env.intr.int:all.parties.lvl2Pro-environment party          0.00       0.03   258.62   -0.06 0.956 -0.06  0.06
+```
+
+```r
+(VC.H5.exp.intr.mod6<-getVC(H5.exp.intr.mod6))
+```
+
+```
+##             grp         var1         var2       est_SD       est_SD2
+## 1  voting.group  (Intercept)         <NA>  0.198111517  3.924817e-02
+## 2  voting.group environ.lvl1         <NA>  0.041542908  1.725813e-03
+## 3  voting.group polintr.lvl1         <NA>  0.055320255  3.060331e-03
+## 4  voting.group env.intr.int         <NA>  0.030463074  9.279989e-04
+## 5  voting.group  (Intercept) environ.lvl1  0.009775029  8.044974e-05
+## 6  voting.group  (Intercept) polintr.lvl1  0.278234076  3.049328e-03
+## 7  voting.group  (Intercept) env.intr.int -0.005342924 -3.224500e-05
+## 8  voting.group environ.lvl1 polintr.lvl1 -0.038071087 -8.749361e-05
+## 9  voting.group environ.lvl1 env.intr.int -0.118634496 -1.501349e-04
+## 10 voting.group polintr.lvl1 env.intr.int -0.301982633 -5.089087e-04
+## 11        cntry  (Intercept)         <NA>  0.481658528  2.319949e-01
+## 12        cntry environ.lvl1         <NA>  0.039339109  1.547565e-03
+## 13        cntry polintr.lvl1         <NA>  0.049623450  2.462487e-03
+## 14        cntry env.intr.int         <NA>  0.009958889  9.917946e-05
+## 15        cntry  (Intercept) environ.lvl1 -0.084609166 -1.603176e-03
+## 16        cntry  (Intercept) polintr.lvl1  0.403865605  9.653017e-03
+## 17        cntry  (Intercept) env.intr.int  0.040557267  1.945444e-04
+## 18        cntry environ.lvl1 polintr.lvl1  0.128000767  2.498757e-04
+## 19        cntry environ.lvl1 env.intr.int  0.966480981  3.786419e-04
+## 20        cntry polintr.lvl1 env.intr.int  0.377789797  1.867016e-04
+## 21     Residual         <NA>         <NA>  1.024822098  1.050260e+00
+```
+
+
+#### Marginal effect for pro-environment and anti-immigration voters
+
+
+```r
+H5.exp.intr.mod6.trends<-emtrends(H5.exp.intr.mod6,specs = c("all.parties.lvl2"),var=c("env.intr.int"))
+(H5.exp.intr.mod6.trends.tab<-data.frame(H5.exp.intr.mod6.trends))
+```
+
+```
+##          all.parties.lvl2 env.intr.int.trend          SE  df    asymp.LCL  asymp.UCL
+## 1  Anti-immigration party      -0.0069621407 0.018544266 Inf -0.043308234 0.02938395
+## 2            Did not vote       0.0095517468 0.014187703 Inf -0.018255640 0.03735913
+## 3              Don't know       0.0267672477 0.034578183 Inf -0.041004746 0.09453924
+## 4            Invalid vote       0.1320711625 0.412682858 Inf -0.676772377 0.94091470
+## 5                  NE age       0.0007638314 0.029563838 Inf -0.057180227 0.05870789
+## 6              NE citizen       0.0795677618 0.028392962 Inf  0.023918580 0.13521694
+## 7                NE other      -0.0916793524 0.059222250 Inf -0.207752829 0.02439412
+## 8               No answer       0.3529258125 0.762887333 Inf -1.142305884 1.84815751
+## 9             Other party       0.0154857242 0.008953365 Inf -0.002062548 0.03303400
+## 10  Pro-environment party      -0.0086996200 0.025538314 Inf -0.058753796 0.04135456
+```
+
+```r
+H5.exp.intr.mod6.trends.tab$p<-
+  2*(1-pnorm(abs(H5.exp.intr.mod6.trends.tab$env.intr.int.trend/
+                   H5.exp.intr.mod6.trends.tab$SE)))
+H5.exp.intr.mod6.trends.tab$adj.p<-
+  p.adjust(H5.exp.intr.mod6.trends.tab$p,method="holm")
+
+H5.exp.intr.mod6.trends.tab<-
+  cbind(group=H5.exp.intr.mod6.trends.tab[,1],
+      round(H5.exp.intr.mod6.trends.tab[,c(2,3)],2),
+      round(H5.exp.intr.mod6.trends.tab[,c(7,8)],4),
+      round(H5.exp.intr.mod6.trends.tab[,c(5,6)],2))
+H5.exp.intr.mod6.trends.tab
+```
+
+```
+##                     group env.intr.int.trend   SE      p  adj.p asymp.LCL asymp.UCL
+## 1  Anti-immigration party              -0.01 0.02 0.7073 1.0000     -0.04      0.03
+## 2            Did not vote               0.01 0.01 0.5008 1.0000     -0.02      0.04
+## 3              Don't know               0.03 0.03 0.4389 1.0000     -0.04      0.09
+## 4            Invalid vote               0.13 0.41 0.7489 1.0000     -0.68      0.94
+## 5                  NE age               0.00 0.03 0.9794 1.0000     -0.06      0.06
+## 6              NE citizen               0.08 0.03 0.0051 0.0507      0.02      0.14
+## 7                NE other              -0.09 0.06 0.1216 0.9729     -0.21      0.02
+## 8               No answer               0.35 0.76 0.6436 1.0000     -1.14      1.85
+## 9             Other party               0.02 0.01 0.0837 0.7533      0.00      0.03
+## 10  Pro-environment party              -0.01 0.03 0.7334 1.0000     -0.06      0.04
+```
+
+```r
+write.csv2(H5.exp.intr.mod6.trends.tab,"H5.exp.intr.mod6.trends.tab.csv")
+
+
+
+#contrast between anti-immigration and pro-environment
+(H5.exp.intr.contrast<-data.frame(pairs(H5.exp.intr.mod6.trends, exclude = c(2:9),reverse=T)))
+```
+
+```
+##                                         contrast     estimate        SE  df     z.ratio   p.value
+## 1 Pro-environment party - Anti-immigration party -0.001737479 0.0314156 Inf -0.05530626 0.9558945
+```
+
+```r
+#contrast for all groups against mean of other groups
+contrast(H5.exp.intr.mod6.trends, "del.eff", by = NULL,adjust=c("holm"))
+```
+
+```
+##  contrast                      estimate     SE  df z.ratio p.value
+##  Anti-immigration party effect  -0.0644 0.0986 Inf -0.653  1.0000 
+##  Did not vote effect            -0.0460 0.0979 Inf -0.470  1.0000 
+##  Don't know effect              -0.0269 0.1027 Inf -0.262  1.0000 
+##  Invalid vote effect             0.0901 0.4214 Inf  0.214  1.0000 
+##  NE age effect                  -0.0558 0.1012 Inf -0.551  1.0000 
+##  NE citizen effect               0.0318 0.1009 Inf  0.315  1.0000 
+##  NE other effect                -0.1585 0.1133 Inf -1.399  1.0000 
+##  No answer effect                0.3355 0.7643 Inf  0.439  1.0000 
+##  Other party effect             -0.0394 0.0972 Inf -0.406  1.0000 
+##  Pro-environment party effect   -0.0663 0.1001 Inf -0.662  1.0000 
+## 
+## Results are averaged over the levels of: gender, resid, occup 
+## Degrees-of-freedom method: asymptotic 
+## P value adjustment: holm method for 10 tests
+```
+
+```r
+#contrast for three voting groups
+(H5.exp.intr.more.contrasts<-data.frame(pairs(H5.exp.intr.mod6.trends, 
+         exclude=c(2:8), by = NULL,adjust=c("holm"),reverse=T)))
+```
+
+```
+##                                         contrast     estimate         SE  df     z.ratio   p.value
+## 1           Other party - Anti-immigration party  0.022447865 0.02035632 Inf  1.10274645 0.8104119
+## 2 Pro-environment party - Anti-immigration party -0.001737479 0.03141560 Inf -0.05530626 0.9558945
+## 3            Pro-environment party - Other party -0.024185344 0.02687443 Inf -0.89993896 0.8104119
+```
+
+
+\newpage
+
+
+
+# Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
+
+Omit missing values on political interest item
+
+
+```r
+dat.H5.news<-dat %>%
+  filter(!is.na(polnews))
+```
+
+### Model 1: without interactions (only main effects)
+
+
+```r
+H5.exp.news.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polnews.lvl1
+                ,data=dat.H5.news,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+isSingular(H5.exp.news.mod1)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+(FE.H5.exp.news.mod1<-getFE(H5.exp.news.mod1))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.49    0.51 0.612 -0.21  0.36
+## age                                                         0.00       0.00 33590.27    3.30 0.001  0.00  0.00
+## gender                                                      0.06       0.01 35308.57    5.07 0.000  0.04  0.08
+## educ                                                        0.01       0.00 35436.41    7.31 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35377.31   -5.19 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35251.11   -0.49 0.627 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35261.80   -0.72 0.472 -0.24  0.11
+## occupElementary occupations                                 0.02       0.09 35263.86    0.18 0.854 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35250.42   -0.19 0.852 -0.19  0.16
+## occupOther: Not in paid work                                0.14       0.09 35420.20    1.55 0.122 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35259.33   -0.71 0.479 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35255.30    0.83 0.404 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35250.00   -0.36 0.717 -0.23  0.16
+## occupService and sales workers                             -0.04       0.09 35257.25   -0.43 0.664 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35266.06   -0.56 0.572 -0.24  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35251.22   -0.37 0.715 -0.20  0.14
+## occupUnemployed                                            -0.02       0.11 35270.08   -0.23 0.820 -0.24  0.19
+## environ.lvl1                                                0.12       0.01    19.41   11.66 0.000  0.10  0.14
+## polnews.lvl1                                                0.03       0.01 35312.08    4.45 0.000  0.01  0.04
+```
+
+```r
+(VC.H5.exp.news.mod1<-getVC(H5.exp.news.mod1))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30827355  0.0950325843
+## 2 voting.group environ.lvl1         <NA>  0.04328811  0.0018738605
+## 3 voting.group  (Intercept) environ.lvl1  0.11077227  0.0014782094
+## 4        cntry  (Intercept)         <NA>  0.49919789  0.2491985382
+## 5        cntry environ.lvl1         <NA>  0.03896499  0.0015182701
+## 6        cntry  (Intercept) environ.lvl1 -0.02792210 -0.0005431194
+## 7     Residual         <NA>         <NA>  1.02912215  1.0590924056
+```
+
+\newpage
+
+### Model 2: Level-1 interaction between environmental attitudes and political polnews
+
+
+```r
+H5.exp.news.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polnews.lvl1+
+                environ.lvl1:polnews.lvl1
+                ,data=dat.H5.news,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.news.mod2)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+anova(H5.exp.news.mod1,H5.exp.news.mod2)
+```
+
+```
+## Data: dat.H5.news
+## Models:
+## H5.exp.news.mod1: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## H5.exp.news.mod1:     age + gender + educ + resid + occup + environ.lvl1 + polnews.lvl1
+## H5.exp.news.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## H5.exp.news.mod2:     age + gender + educ + resid + occup + environ.lvl1 + polnews.lvl1 + 
+## H5.exp.news.mod2:     environ.lvl1:polnews.lvl1
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
+## H5.exp.news.mod1   26 103544 103764 -51746   103492                     
+## H5.exp.news.mod2   27 103546 103774 -51746   103492 0.1524  1     0.6963
+```
+
+```r
+(FE.H5.exp.news.mod2<-getFE(H5.exp.news.mod2))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.49    0.51 0.612 -0.21  0.36
+## age                                                         0.00       0.00 33587.67    3.30 0.001  0.00  0.00
+## gender                                                      0.06       0.01 35308.54    5.06 0.000  0.04  0.08
+## educ                                                        0.01       0.00 35436.51    7.31 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35377.32   -5.19 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35251.12   -0.49 0.628 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35261.80   -0.72 0.472 -0.24  0.11
+## occupElementary occupations                                 0.02       0.09 35263.86    0.18 0.854 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35250.43   -0.19 0.852 -0.19  0.16
+## occupOther: Not in paid work                                0.14       0.09 35420.32    1.54 0.123 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35259.34   -0.71 0.479 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35255.31    0.83 0.404 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35250.02   -0.36 0.717 -0.23  0.16
+## occupService and sales workers                             -0.04       0.09 35257.26   -0.43 0.664 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35266.06   -0.56 0.573 -0.24  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35251.23   -0.37 0.715 -0.20  0.14
+## occupUnemployed                                            -0.02       0.11 35270.03   -0.23 0.821 -0.24  0.19
+## environ.lvl1                                                0.12       0.01    19.41   11.66 0.000  0.10  0.14
+## polnews.lvl1                                                0.03       0.01 35312.86    4.45 0.000  0.01  0.04
+## environ.lvl1:polnews.lvl1                                   0.00       0.00 35279.06   -0.39 0.696 -0.01  0.01
+```
+
+```r
+(VC.H5.exp.news.mod2<-getVC(H5.exp.news.mod2))
+```
+
+```
+##            grp         var1         var2      est_SD       est_SD2
+## 1 voting.group  (Intercept)         <NA>  0.30828779  0.0950413597
+## 2 voting.group environ.lvl1         <NA>  0.04325288  0.0018708114
+## 3 voting.group  (Intercept) environ.lvl1  0.11113357  0.0014818921
+## 4        cntry  (Intercept)         <NA>  0.49921640  0.2492170167
+## 5        cntry environ.lvl1         <NA>  0.03898152  0.0015195590
+## 6        cntry  (Intercept) environ.lvl1 -0.02812737 -0.0005473646
+## 7     Residual         <NA>         <NA>  1.02912069  1.0590893901
+```
+
+\newpage
+
+### Model 3: Level-1 interaction between environmental attitudes and political polnews, allow polnews effect to vary between voting groups and countries
+
+
+```r
+H5.exp.news.mod3<-lmer(refugees~(environ.lvl1+polnews.lvl1|voting.group)+
+                (environ.lvl1+polnews.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polnews.lvl1+
+                environ.lvl1:polnews.lvl1
+                ,data=dat.H5.news,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+isSingular(H5.exp.news.mod3)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+anova(H5.exp.news.mod2,H5.exp.news.mod3)
+```
+
+```
+## Data: dat.H5.news
+## Models:
+## H5.exp.news.mod2: refugees ~ (environ.lvl1 | voting.group) + (environ.lvl1 | cntry) + 
+## H5.exp.news.mod2:     age + gender + educ + resid + occup + environ.lvl1 + polnews.lvl1 + 
+## H5.exp.news.mod2:     environ.lvl1:polnews.lvl1
+## H5.exp.news.mod3: refugees ~ (environ.lvl1 + polnews.lvl1 | voting.group) + (environ.lvl1 + 
+## H5.exp.news.mod3:     polnews.lvl1 | cntry) + age + gender + educ + resid + occup + 
+## H5.exp.news.mod3:     environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)  
+## H5.exp.news.mod2   27 103546 103774 -51746   103492                       
+## H5.exp.news.mod3   33 103543 103823 -51739   103477 14.116  6    0.02836 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+(FE.H5.exp.news.mod3<-getFE(H5.exp.news.mod3))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.48    0.51 0.611 -0.21  0.36
+## age                                                         0.00       0.00 32648.32    3.49 0.000  0.00  0.00
+## gender                                                      0.06       0.01 35306.61    5.09 0.000  0.04  0.08
+## educ                                                        0.01       0.00 35392.24    7.34 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35352.96   -5.10 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35234.96   -0.48 0.633 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35239.84   -0.72 0.472 -0.24  0.11
+## occupElementary occupations                                 0.02       0.09 35243.26    0.20 0.842 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35232.28   -0.19 0.848 -0.19  0.16
+## occupOther: Not in paid work                                0.14       0.09 35406.43    1.54 0.124 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35245.57   -0.69 0.490 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35236.68    0.83 0.409 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35230.83   -0.39 0.699 -0.23  0.15
+## occupService and sales workers                             -0.04       0.09 35236.06   -0.44 0.662 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35251.34   -0.55 0.583 -0.23  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35231.31   -0.36 0.719 -0.20  0.14
+## occupUnemployed                                            -0.03       0.11 35249.83   -0.26 0.796 -0.24  0.18
+## environ.lvl1                                                0.12       0.01    19.42   11.65 0.000  0.10  0.14
+## polnews.lvl1                                                0.02       0.01    22.50    2.66 0.014  0.01  0.04
+## environ.lvl1:polnews.lvl1                                   0.00       0.00 35270.99   -0.35 0.725 -0.01  0.01
+```
+
+```r
+(VC.H5.exp.news.mod3<-getVC(H5.exp.news.mod3))
+```
+
+```
+##             grp         var1         var2       est_SD       est_SD2
+## 1  voting.group  (Intercept)         <NA>  0.308661099  9.527167e-02
+## 2  voting.group environ.lvl1         <NA>  0.043203926  1.866579e-03
+## 3  voting.group polnews.lvl1         <NA>  0.029900588  8.940451e-04
+## 4  voting.group  (Intercept) environ.lvl1  0.113331427  1.511317e-03
+## 5  voting.group  (Intercept) polnews.lvl1  0.039458622  3.641695e-04
+## 6  voting.group environ.lvl1 polnews.lvl1  0.002452728  3.168490e-06
+## 7         cntry  (Intercept)         <NA>  0.499102349  2.491032e-01
+## 8         cntry environ.lvl1         <NA>  0.038943792  1.516619e-03
+## 9         cntry polnews.lvl1         <NA>  0.026970238  7.273937e-04
+## 10        cntry  (Intercept) environ.lvl1 -0.030940455 -6.013877e-04
+## 11        cntry  (Intercept) polnews.lvl1  0.436423393  5.874656e-03
+## 12        cntry environ.lvl1 polnews.lvl1  0.076178478  8.001203e-05
+## 13     Residual         <NA>         <NA>  1.028345791  1.057495e+00
+```
+
+
+\newpage
+
+### Model 4: Allow the level-1 interaction to vary between voting groups and countries
+
+
+```r
+H5.exp.news.mod4<-lmer(refugees~
+                (environ.lvl1+polnews.lvl1+
+                   environ.lvl1:polnews.lvl1|voting.group)+
+                (environ.lvl1+polnews.lvl1+
+                   environ.lvl1:polnews.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polnews.lvl1+
+                environ.lvl1:polnews.lvl1
+                ,data=dat.H5.news,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```
+## Warning: Model failed to converge with 1 negative eigenvalue: -1.2e+03
+```
+
+```r
+isSingular(H5.exp.news.mod4)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.news.mod3,H5.exp.news.mod4)
+```
+
+```
+## Data: dat.H5.news
+## Models:
+## H5.exp.news.mod3: refugees ~ (environ.lvl1 + polnews.lvl1 | voting.group) + (environ.lvl1 + 
+## H5.exp.news.mod3:     polnews.lvl1 | cntry) + age + gender + educ + resid + occup + 
+## H5.exp.news.mod3:     environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1
+## H5.exp.news.mod4: refugees ~ (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod4:     voting.group) + (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod4:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.news.mod4:     polnews.lvl1 + environ.lvl1:polnews.lvl1
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)   
+## H5.exp.news.mod3   33 103543 103823 -51739   103477                        
+## H5.exp.news.mod4   41 103538 103885 -51728   103456 21.631  8   0.005647 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+(FE.H5.exp.news.mod4<-getFE(H5.exp.news.mod4))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                 0.07       0.14    49.45    0.51 0.610 -0.21  0.36
+## age                                                         0.00       0.00 32551.27    3.50 0.000  0.00  0.00
+## gender                                                      0.06       0.01 35279.89    5.09 0.000  0.04  0.08
+## educ                                                        0.01       0.00 35331.70    7.38 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35340.92   -5.09 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35216.24   -0.47 0.635 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35219.22   -0.72 0.474 -0.24  0.11
+## occupElementary occupations                                 0.02       0.09 35218.20    0.19 0.850 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35204.19   -0.20 0.842 -0.19  0.16
+## occupOther: Not in paid work                                0.14       0.09 35385.77    1.56 0.119 -0.04  0.32
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35216.81   -0.69 0.487 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35214.37    0.82 0.412 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35205.67   -0.38 0.701 -0.23  0.15
+## occupService and sales workers                             -0.04       0.09 35211.38   -0.44 0.658 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35233.55   -0.55 0.583 -0.23  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35207.56   -0.36 0.716 -0.20  0.14
+## occupUnemployed                                            -0.03       0.11 35215.03   -0.28 0.776 -0.24  0.18
+## environ.lvl1                                                0.12       0.01    19.46   11.72 0.000  0.10  0.14
+## polnews.lvl1                                                0.02       0.01    22.39    2.65 0.015  0.00  0.04
+## environ.lvl1:polnews.lvl1                                   0.00       0.01    19.30   -0.14 0.887 -0.02  0.01
+```
+
+```r
+(VC.H5.exp.news.mod4<-getVC(H5.exp.news.mod4))
+```
+
+```
+##             grp                      var1                      var2       est_SD       est_SD2
+## 1  voting.group               (Intercept)                      <NA>  0.308107232  9.493007e-02
+## 2  voting.group              environ.lvl1                      <NA>  0.042898183  1.840254e-03
+## 3  voting.group              polnews.lvl1                      <NA>  0.030868161  9.528434e-04
+## 4  voting.group environ.lvl1:polnews.lvl1                      <NA>  0.018365200  3.372806e-04
+## 5  voting.group               (Intercept)              environ.lvl1  0.110342172  1.458419e-03
+## 6  voting.group               (Intercept)              polnews.lvl1  0.022461296  2.136227e-04
+## 7  voting.group               (Intercept) environ.lvl1:polnews.lvl1  0.615115341  3.480600e-03
+## 8  voting.group              environ.lvl1              polnews.lvl1 -0.048684972 -6.446806e-05
+## 9  voting.group              environ.lvl1 environ.lvl1:polnews.lvl1 -0.104949559 -8.268280e-05
+## 10 voting.group              polnews.lvl1 environ.lvl1:polnews.lvl1 -0.745042238 -4.223644e-04
+## 11        cntry               (Intercept)                      <NA>  0.499211808  2.492124e-01
+## 12        cntry              environ.lvl1                      <NA>  0.038514255  1.483348e-03
+## 13        cntry              polnews.lvl1                      <NA>  0.026109935  6.817287e-04
+## 14        cntry environ.lvl1:polnews.lvl1                      <NA>  0.023597931  5.568624e-04
+## 15        cntry               (Intercept)              environ.lvl1 -0.009048442 -1.739723e-04
+## 16        cntry               (Intercept)              polnews.lvl1  0.491309760  6.403922e-03
+## 17        cntry               (Intercept) environ.lvl1:polnews.lvl1 -0.395609561 -4.660425e-03
+## 18        cntry              environ.lvl1              polnews.lvl1  0.089737428  9.024038e-05
+## 19        cntry              environ.lvl1 environ.lvl1:polnews.lvl1  0.732075194  6.653515e-04
+## 20        cntry              polnews.lvl1 environ.lvl1:polnews.lvl1 -0.338042424 -2.082816e-04
+## 21     Residual                      <NA>                      <NA>  1.027788635  1.056349e+00
+```
+
+```r
+theta <- getME(H5.exp.news.mod4,"theta")
+
+## diagonal elements are identifiable because they are fitted
+##  with a lower bound of zero ...
+diag.element <- getME(H5.exp.news.mod4,"lower")==0
+any(theta[diag.element]<1e-5)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+round(theta,5)
+```
+
+```
+##                            voting.group.(Intercept)               voting.group.environ.lvl1.(Intercept) 
+##                                             0.29978                                             0.00461 
+##               voting.group.polnews.lvl1.(Intercept)  voting.group.environ.lvl1:polnews.lvl1.(Intercept) 
+##                                             0.00067                                             0.01099 
+##                           voting.group.environ.lvl1              voting.group.polnews.lvl1.environ.lvl1 
+##                                             0.04148                                            -0.00155 
+## voting.group.environ.lvl1:polnews.lvl1.environ.lvl1                           voting.group.polnews.lvl1 
+##                                            -0.00311                                             0.02999 
+## voting.group.environ.lvl1:polnews.lvl1.polnews.lvl1              voting.group.environ.lvl1:polnews.lvl1 
+##                                            -0.01374                                             0.00000 
+##                                   cntry.(Intercept)                      cntry.environ.lvl1.(Intercept) 
+##                                             0.48571                                            -0.00034 
+##                      cntry.polnews.lvl1.(Intercept)         cntry.environ.lvl1:polnews.lvl1.(Intercept) 
+##                                             0.01248                                            -0.00908 
+##                                  cntry.environ.lvl1                     cntry.polnews.lvl1.environ.lvl1 
+##                                             0.03747                                             0.00239 
+##        cntry.environ.lvl1:polnews.lvl1.environ.lvl1                                  cntry.polnews.lvl1 
+##                                             0.01673                                             0.02200 
+##        cntry.environ.lvl1:polnews.lvl1.polnews.lvl1                     cntry.environ.lvl1:polnews.lvl1 
+##                                            -0.00563                                             0.01154
+```
+
+\newpage
+
+### Model 5: Enter voting group variable and both two-way interactions with environment and polnews
+
+
+```r
+H5.exp.news.mod5<-lmer(refugees~
+                (environ.lvl1+polnews.lvl1+environ.lvl1:polnews.lvl1|voting.group)+
+                (environ.lvl1+polnews.lvl1+environ.lvl1:polnews.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polnews.lvl1+
+                environ.lvl1:polnews.lvl1+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polnews.lvl1:all.parties.lvl2
+                ,data=dat.H5.news,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```r
+isSingular(H5.exp.news.mod5)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.news.mod4,H5.exp.news.mod5)
+```
+
+```
+## Data: dat.H5.news
+## Models:
+## H5.exp.news.mod4: refugees ~ (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod4:     voting.group) + (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod4:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.news.mod4:     polnews.lvl1 + environ.lvl1:polnews.lvl1
+## H5.exp.news.mod5: refugees ~ (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod5:     voting.group) + (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod5:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.news.mod5:     polnews.lvl1 + environ.lvl1:polnews.lvl1 + all.parties.lvl2 + 
+## H5.exp.news.mod5:     environ.lvl1:all.parties.lvl2 + polnews.lvl1:all.parties.lvl2
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)    
+## H5.exp.news.mod4   41 103538 103885 -51728   103456                         
+## H5.exp.news.mod5   68 103396 103973 -51630   103260 195.65 27  < 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+(FE.H5.exp.news.mod5<-getFE(H5.exp.news.mod5))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                -0.48       0.14    62.06   -3.30 0.002 -0.76 -0.19
+## age                                                         0.00       0.00 35050.90    3.82 0.000  0.00  0.00
+## gender                                                      0.06       0.01 35303.96    5.07 0.000  0.04  0.08
+## educ                                                        0.01       0.00 35338.83    7.39 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35389.26   -5.04 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35273.69   -0.49 0.623 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35278.10   -0.70 0.483 -0.23  0.11
+## occupElementary occupations                                 0.01       0.09 35273.68    0.16 0.872 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35262.22   -0.21 0.837 -0.19  0.16
+## occupOther: Not in paid work                                0.12       0.09 35332.02    1.37 0.171 -0.05  0.30
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35276.08   -0.69 0.493 -0.23  0.11
+## occupProfessionals                                          0.07       0.09 35273.26    0.81 0.417 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35250.31   -0.40 0.686 -0.23  0.15
+## occupService and sales workers                             -0.04       0.09 35270.09   -0.44 0.660 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35295.96   -0.56 0.574 -0.23  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35267.41   -0.36 0.720 -0.20  0.14
+## occupUnemployed                                            -0.03       0.11 35260.13   -0.32 0.752 -0.24  0.18
+## environ.lvl1                                                0.11       0.02   108.30    5.59 0.000  0.07  0.15
+## polnews.lvl1                                                0.02       0.02   141.31    1.25 0.214 -0.01  0.06
+## all.parties.lvl2Did not vote                                0.45       0.06   179.10    7.10 0.000  0.32  0.57
+## all.parties.lvl2Don't know                                  0.43       0.07   269.00    6.05 0.000  0.29  0.57
+## all.parties.lvl2Invalid vote                                0.49       0.36  1119.81    1.37 0.172 -0.21  1.19
+## all.parties.lvl2NE age                                      0.74       0.07   273.06   10.44 0.000  0.60  0.88
+## all.parties.lvl2NE citizen                                  0.87       0.08   269.18   11.43 0.000  0.72  1.02
+## all.parties.lvl2NE other                                    0.72       0.10   658.30    7.36 0.000  0.53  0.91
+## all.parties.lvl2No answer                                   0.54       0.38  1387.11    1.45 0.148 -0.19  1.28
+## all.parties.lvl2Other party                                 0.55       0.05   229.57   11.49 0.000  0.46  0.65
+## all.parties.lvl2Pro-environment party                       0.92       0.06   255.26   14.16 0.000  0.79  1.05
+## environ.lvl1:polnews.lvl1                                   0.00       0.01    19.42   -0.41 0.683 -0.02  0.01
+## environ.lvl1:all.parties.lvl2Did not vote                   0.00       0.02    84.50    0.03 0.977 -0.04  0.05
+## environ.lvl1:all.parties.lvl2Don't know                     0.03       0.03   333.34    0.92 0.356 -0.04  0.10
+## environ.lvl1:all.parties.lvl2Invalid vote                   0.05       0.39 25029.45    0.13 0.896 -0.71  0.81
+## environ.lvl1:all.parties.lvl2NE age                         0.04       0.03   232.31    1.25 0.212 -0.02  0.10
+## environ.lvl1:all.parties.lvl2NE citizen                    -0.03       0.03   229.81   -1.00 0.319 -0.10  0.03
+## environ.lvl1:all.parties.lvl2NE other                       0.03       0.06  1219.70    0.59 0.554 -0.08  0.14
+## environ.lvl1:all.parties.lvl2No answer                      0.25       0.23  7350.89    1.06 0.288 -0.21  0.70
+## environ.lvl1:all.parties.lvl2Other party                    0.02       0.02   131.72    0.94 0.351 -0.02  0.06
+## environ.lvl1:all.parties.lvl2Pro-environment party          0.03       0.03   190.28    0.96 0.339 -0.03  0.08
+## polnews.lvl1:all.parties.lvl2Did not vote                  -0.02       0.02    94.21   -0.75 0.457 -0.06  0.03
+## polnews.lvl1:all.parties.lvl2Don't know                    -0.06       0.04   500.80   -1.67 0.095 -0.13  0.01
+## polnews.lvl1:all.parties.lvl2Invalid vote                  -0.06       0.34 22217.09   -0.17 0.863 -0.73  0.61
+## polnews.lvl1:all.parties.lvl2NE age                        -0.02       0.03   340.96   -0.56 0.576 -0.08  0.05
+## polnews.lvl1:all.parties.lvl2NE citizen                    -0.02       0.04   314.07   -0.43 0.669 -0.08  0.05
+## polnews.lvl1:all.parties.lvl2NE other                      -0.03       0.06  2835.56   -0.44 0.660 -0.15  0.10
+## polnews.lvl1:all.parties.lvl2No answer                     -0.38       0.42 29170.71   -0.91 0.363 -1.21  0.44
+## polnews.lvl1:all.parties.lvl2Other party                    0.01       0.02   160.97    0.56 0.577 -0.03  0.05
+## polnews.lvl1:all.parties.lvl2Pro-environment party          0.00       0.03   283.10    0.13 0.893 -0.06  0.06
+```
+
+```r
+(VC.H5.exp.news.mod5<-getVC(H5.exp.news.mod5))
+```
+
+```
+##             grp                      var1                      var2      est_SD       est_SD2
+## 1  voting.group               (Intercept)                      <NA>  0.19787604  3.915493e-02
+## 2  voting.group              environ.lvl1                      <NA>  0.04070099  1.656571e-03
+## 3  voting.group              polnews.lvl1                      <NA>  0.02760802  7.622026e-04
+## 4  voting.group environ.lvl1:polnews.lvl1                      <NA>  0.01552929  2.411588e-04
+## 5  voting.group               (Intercept)              environ.lvl1  0.08152100  6.565498e-04
+## 6  voting.group               (Intercept)              polnews.lvl1 -0.01322898 -7.226946e-05
+## 7  voting.group               (Intercept) environ.lvl1:polnews.lvl1 -0.33110264 -1.017437e-03
+## 8  voting.group              environ.lvl1              polnews.lvl1 -0.03344998 -3.758686e-05
+## 9  voting.group              environ.lvl1 environ.lvl1:polnews.lvl1 -0.23299967 -1.472692e-04
+## 10 voting.group              polnews.lvl1 environ.lvl1:polnews.lvl1 -0.90901803 -3.897259e-04
+## 11        cntry               (Intercept)                      <NA>  0.48213103  2.324503e-01
+## 12        cntry              environ.lvl1                      <NA>  0.03910401  1.529124e-03
+## 13        cntry              polnews.lvl1                      <NA>  0.02697269  7.275259e-04
+## 14        cntry environ.lvl1:polnews.lvl1                      <NA>  0.02397377  5.747417e-04
+## 15        cntry               (Intercept)              environ.lvl1 -0.01261116 -2.377615e-04
+## 16        cntry               (Intercept)              polnews.lvl1  0.45249552  5.884419e-03
+## 17        cntry               (Intercept) environ.lvl1:polnews.lvl1 -0.40038518 -4.627852e-03
+## 18        cntry              environ.lvl1              polnews.lvl1  0.08462077  8.925295e-05
+## 19        cntry              environ.lvl1 environ.lvl1:polnews.lvl1  0.75421565  7.070551e-04
+## 20        cntry              polnews.lvl1 environ.lvl1:polnews.lvl1 -0.36305362 -2.347639e-04
+## 21     Residual                      <NA>                      <NA>  1.02774420  1.056258e+00
+```
+
+\newpage
+
+#### Look among which voting group there is strongest association between polnews and refugee attitudes
+
+
+```r
+H5.exp.news.mod5.trends<-emtrends(H5.exp.news.mod5,specs = c("all.parties.lvl2"),var=c("polnews.lvl1"))
+```
+
+```
+## Note: D.f. calculations have been disabled because the number of observations exceeds 3000.
+## To enable adjustments, add the argument 'pbkrtest.limit = 35483' (or larger)
+## [or, globally, 'set emm_options(pbkrtest.limit = 35483)' or larger];
+## but be warned that this may result in large computation time and memory use.
+```
+
+```
+## Note: D.f. calculations have been disabled because the number of observations exceeds 3000.
+## To enable adjustments, add the argument 'lmerTest.limit = 35483' (or larger)
+## [or, globally, 'set emm_options(lmerTest.limit = 35483)' or larger];
+## but be warned that this may result in large computation time and memory use.
+```
+
+```r
+(H5.exp.news.mod5.trends.tab<-data.frame(H5.exp.news.mod5.trends))
+```
+
+```
+##          all.parties.lvl2 polnews.lvl1.trend         SE  df   asymp.LCL  asymp.UCL
+## 1  Anti-immigration party        0.023895565 0.01914989 Inf -0.01363752 0.06142865
+## 2            Did not vote        0.007253473 0.01444551 Inf -0.02105920 0.03556615
+## 3              Don't know       -0.035982728 0.03146913 Inf -0.09766109 0.02569563
+## 4            Invalid vote       -0.034937695 0.34015378 Inf -0.70162686 0.63175147
+## 5                  NE age        0.005899655 0.02718764 Inf -0.04738713 0.05918644
+## 6              NE citizen        0.008775561 0.03094524 Inf -0.05187600 0.06942712
+## 7                NE other       -0.003699292 0.06042415 Inf -0.12212845 0.11472987
+## 8               No answer       -0.361024641 0.42242427 Inf -1.18896100 0.46691171
+## 9             Other party        0.035171778 0.01076074 Inf  0.01408112 0.05626243
+## 10  Pro-environment party        0.027950814 0.02482136 Inf -0.02069816 0.07659979
+```
+
+```r
+H5.exp.news.mod5.trends.tab$p<-
+  2*(1-pnorm(abs(H5.exp.news.mod5.trends.tab$polnews.lvl1.trend/
+                   H5.exp.news.mod5.trends.tab$SE)))
+H5.exp.news.mod5.trends.tab$adj.p<-
+  p.adjust(H5.exp.news.mod5.trends.tab$p,method="holm")
+
+H5.exp.news.mod5.trends.tab<-
+  cbind(group=H5.exp.news.mod5.trends.tab[,1],
+      round(H5.exp.news.mod5.trends.tab[,c(2,3)],2),
+      round(H5.exp.news.mod5.trends.tab[,c(7,8)],4),
+      round(H5.exp.news.mod5.trends.tab[,c(5,6)],2))
+H5.exp.news.mod5.trends.tab
+```
+
+```
+##                     group polnews.lvl1.trend   SE      p  adj.p asymp.LCL asymp.UCL
+## 1  Anti-immigration party               0.02 0.02 0.2121 1.0000     -0.01      0.06
+## 2            Did not vote               0.01 0.01 0.6156 1.0000     -0.02      0.04
+## 3              Don't know              -0.04 0.03 0.2529 1.0000     -0.10      0.03
+## 4            Invalid vote              -0.03 0.34 0.9182 1.0000     -0.70      0.63
+## 5                  NE age               0.01 0.03 0.8282 1.0000     -0.05      0.06
+## 6              NE citizen               0.01 0.03 0.7767 1.0000     -0.05      0.07
+## 7                NE other               0.00 0.06 0.9512 1.0000     -0.12      0.11
+## 8               No answer              -0.36 0.42 0.3927 1.0000     -1.19      0.47
+## 9             Other party               0.04 0.01 0.0011 0.0108      0.01      0.06
+## 10  Pro-environment party               0.03 0.02 0.2601 1.0000     -0.02      0.08
+```
+
+```r
+write.csv2(H5.exp.news.mod5.trends.tab,"H5.exp.news.mod5.trends.tab.csv")
+
+#contrast between anti-immigration and pro-environment
+(H5.exp.news.contrast<-data.frame(pairs(H5.exp.news.mod5.trends, exclude = c(2:9),reverse=T)))
+```
+
+```
+##                                         contrast    estimate         SE  df   z.ratio   p.value
+## 1 Pro-environment party - Anti-immigration party 0.004055249 0.03015088 Inf 0.1344985 0.8930084
+```
+
+```r
+#contrast for all groups against mean of other groups
+contrast(H5.exp.news.mod5.trends, "del.eff", by = NULL,adjust=c("none"))
+```
+
+```
+##  contrast                      estimate     SE  df z.ratio p.value
+##  Anti-immigration party effect  0.06285 0.0636 Inf  0.988  0.3230 
+##  Did not vote effect            0.04436 0.0624 Inf  0.711  0.4769 
+##  Don't know effect             -0.00368 0.0683 Inf -0.054  0.9570 
+##  Invalid vote effect           -0.00252 0.3435 Inf -0.007  0.9941 
+##  NE age effect                  0.04285 0.0664 Inf  0.645  0.5190 
+##  NE citizen effect              0.04605 0.0680 Inf  0.677  0.4985 
+##  NE other effect                0.03219 0.0854 Inf  0.377  0.7061 
+##  No answer effect              -0.36484 0.4242 Inf -0.860  0.3897 
+##  Other party effect             0.07538 0.0616 Inf  1.224  0.2211 
+##  Pro-environment party effect   0.06736 0.0655 Inf  1.028  0.3040 
+## 
+## Results are averaged over the levels of: gender, resid, occup 
+## Degrees-of-freedom method: asymptotic
+```
+
+```r
+#contrast for three voting groups
+(H4.more.contrasts<-data.frame(pairs(H5.exp.news.mod5.trends, 
+         exclude=c(2:8), by = NULL,adjust=c("none"),reverse=T)))
+```
+
+```
+##                                         contrast     estimate         SE  df    z.ratio   p.value
+## 1           Other party - Anti-immigration party  0.011276213 0.02017026 Inf  0.5590515 0.5761266
+## 2 Pro-environment party - Anti-immigration party  0.004055249 0.03015088 Inf  0.1344985 0.8930084
+## 3            Pro-environment party - Other party -0.007220963 0.02556620 Inf -0.2824418 0.7776047
+```
+
+\newpage
+
+### Model 6: Enter three-way interaction voting group x polnews x environment attitudes
+
+
+```r
+H5.exp.news.mod6<-lmer(refugees~
+                (environ.lvl1+polnews.lvl1+environ.lvl1:polnews.lvl1|voting.group)+
+                (environ.lvl1+polnews.lvl1+environ.lvl1:polnews.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polnews.lvl1+
+                environ.lvl1:polnews.lvl1+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polnews.lvl1:all.parties.lvl2+
+                environ.lvl1:polnews.lvl1:all.parties.lvl2
+                ,data=dat.H5.news,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```r
+isSingular(H5.exp.news.mod6)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.news.mod5,H5.exp.news.mod6)
+```
+
+```
+## Data: dat.H5.news
+## Models:
+## H5.exp.news.mod5: refugees ~ (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod5:     voting.group) + (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod5:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.news.mod5:     polnews.lvl1 + environ.lvl1:polnews.lvl1 + all.parties.lvl2 + 
+## H5.exp.news.mod5:     environ.lvl1:all.parties.lvl2 + polnews.lvl1:all.parties.lvl2
+## H5.exp.news.mod6: refugees ~ (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod6:     voting.group) + (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod6:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.news.mod6:     polnews.lvl1 + environ.lvl1:polnews.lvl1 + all.parties.lvl2 + 
+## H5.exp.news.mod6:     environ.lvl1:all.parties.lvl2 + polnews.lvl1:all.parties.lvl2 + 
+## H5.exp.news.mod6:     environ.lvl1:polnews.lvl1:all.parties.lvl2
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
+## H5.exp.news.mod5   68 103396 103973 -51630   103260                     
+## H5.exp.news.mod6   77 103400 104052 -51623   103246 14.446  9     0.1073
+```
+
+```r
+(FE.H5.exp.news.mod6<-getFE(H5.exp.news.mod6))
+```
+
+```
+##                                                                 Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                        -0.47       0.14    61.97   -3.23 0.002 -0.76 -0.18
+## age                                                                 0.00       0.00 35078.87    3.87 0.000  0.00  0.00
+## gender                                                              0.06       0.01 35308.31    5.09 0.000  0.04  0.08
+## educ                                                                0.01       0.00 35341.53    7.43 0.000  0.01  0.02
+## resid                                                              -0.06       0.01 35392.15   -5.02 0.000 -0.08 -0.04
+## occupClerical support workers                                      -0.04       0.09 35278.42   -0.50 0.614 -0.22  0.13
+## occupCraft and related trades workers                              -0.06       0.09 35284.07   -0.72 0.472 -0.24  0.11
+## occupElementary occupations                                         0.01       0.09 35279.64    0.14 0.885 -0.16  0.19
+## occupManagers                                                      -0.02       0.09 35268.16   -0.22 0.828 -0.19  0.15
+## occupOther: Not in paid work                                        0.12       0.09 35335.83    1.35 0.178 -0.06  0.30
+## occupPlant and machine operators, and assemblers                   -0.06       0.09 35281.32   -0.71 0.479 -0.24  0.11
+## occupProfessionals                                                  0.07       0.09 35277.47    0.79 0.429 -0.10  0.24
+## occupRetired                                                       -0.04       0.10 35256.78   -0.43 0.670 -0.23  0.15
+## occupService and sales workers                                     -0.04       0.09 35276.31   -0.46 0.648 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers            -0.05       0.09 35301.00   -0.57 0.567 -0.24  0.13
+## occupTechnicians and associate professionals                       -0.03       0.09 35272.76   -0.37 0.708 -0.20  0.14
+## occupUnemployed                                                    -0.03       0.11 35270.48   -0.32 0.746 -0.25  0.18
+## environ.lvl1                                                        0.11       0.02   108.17    5.65 0.000  0.07  0.15
+## polnews.lvl1                                                        0.03       0.02   143.52    1.39 0.168 -0.01  0.06
+## all.parties.lvl2Did not vote                                        0.45       0.06   182.48    7.01 0.000  0.32  0.57
+## all.parties.lvl2Don't know                                          0.42       0.07   268.51    5.95 0.000  0.28  0.56
+## all.parties.lvl2Invalid vote                                        0.49       0.36  1122.95    1.37 0.172 -0.21  1.19
+## all.parties.lvl2NE age                                              0.73       0.07   273.77   10.37 0.000  0.60  0.87
+## all.parties.lvl2NE citizen                                          0.86       0.08   268.93   11.22 0.000  0.71  1.01
+## all.parties.lvl2NE other                                            0.71       0.10   656.95    7.29 0.000  0.52  0.91
+## all.parties.lvl2No answer                                           0.55       0.38  1407.00    1.45 0.149 -0.20  1.29
+## all.parties.lvl2Other party                                         0.55       0.05   230.47   11.30 0.000  0.45  0.64
+## all.parties.lvl2Pro-environment party                               0.91       0.06   255.65   13.98 0.000  0.78  1.04
+## environ.lvl1:polnews.lvl1                                          -0.04       0.02   190.57   -2.51 0.013 -0.07 -0.01
+## environ.lvl1:all.parties.lvl2Did not vote                           0.00       0.02    84.04    0.00 0.998 -0.04  0.04
+## environ.lvl1:all.parties.lvl2Don't know                             0.03       0.03   333.34    0.91 0.366 -0.04  0.10
+## environ.lvl1:all.parties.lvl2Invalid vote                           0.11       0.40 25949.48    0.27 0.788 -0.67  0.89
+## environ.lvl1:all.parties.lvl2NE age                                 0.04       0.03   233.55    1.25 0.214 -0.02  0.10
+## environ.lvl1:all.parties.lvl2NE citizen                            -0.04       0.03   228.84   -1.11 0.268 -0.10  0.03
+## environ.lvl1:all.parties.lvl2NE other                               0.03       0.06  1249.46    0.60 0.548 -0.08  0.14
+## environ.lvl1:all.parties.lvl2No answer                              0.23       0.23  7977.79    1.00 0.318 -0.23  0.69
+## environ.lvl1:all.parties.lvl2Other party                            0.02       0.02   131.21    0.87 0.387 -0.02  0.05
+## environ.lvl1:all.parties.lvl2Pro-environment party                  0.03       0.03   190.33    0.90 0.367 -0.03  0.08
+## polnews.lvl1:all.parties.lvl2Did not vote                          -0.02       0.02    93.48   -0.82 0.415 -0.06  0.03
+## polnews.lvl1:all.parties.lvl2Don't know                            -0.06       0.04   498.33   -1.74 0.083 -0.13  0.01
+## polnews.lvl1:all.parties.lvl2Invalid vote                          -0.08       0.34 22208.90   -0.23 0.820 -0.75  0.59
+## polnews.lvl1:all.parties.lvl2NE age                                -0.02       0.03   336.27   -0.61 0.544 -0.08  0.04
+## polnews.lvl1:all.parties.lvl2NE citizen                            -0.02       0.04   308.09   -0.67 0.504 -0.09  0.05
+## polnews.lvl1:all.parties.lvl2NE other                              -0.03       0.06  2838.91   -0.40 0.686 -0.15  0.10
+## polnews.lvl1:all.parties.lvl2No answer                             -0.37       0.43 29076.52   -0.85 0.394 -1.21  0.48
+## polnews.lvl1:all.parties.lvl2Other party                            0.01       0.02   161.97    0.37 0.709 -0.03  0.05
+## polnews.lvl1:all.parties.lvl2Pro-environment party                  0.00       0.03   284.91    0.03 0.977 -0.06  0.06
+## environ.lvl1:polnews.lvl1:all.parties.lvl2Did not vote              0.03       0.02   229.81    1.71 0.089  0.00  0.07
+## environ.lvl1:polnews.lvl1:all.parties.lvl2Don't know                0.02       0.03  1291.66    0.78 0.436 -0.04  0.08
+## environ.lvl1:polnews.lvl1:all.parties.lvl2Invalid vote              0.45       0.58 34650.10    0.77 0.444 -0.70  1.59
+## environ.lvl1:polnews.lvl1:all.parties.lvl2NE age                    0.02       0.03   961.62    0.87 0.386 -0.03  0.08
+## environ.lvl1:polnews.lvl1:all.parties.lvl2NE citizen                0.09       0.03   824.81    3.22 0.001  0.04  0.15
+## environ.lvl1:polnews.lvl1:all.parties.lvl2NE other                  0.02       0.05  4486.28    0.37 0.715 -0.08  0.11
+## environ.lvl1:polnews.lvl1:all.parties.lvl2No answer                -0.04       0.32 31141.51   -0.13 0.900 -0.66  0.58
+## environ.lvl1:polnews.lvl1:all.parties.lvl2Other party               0.04       0.02   390.04    2.63 0.009  0.01  0.08
+## environ.lvl1:polnews.lvl1:all.parties.lvl2Pro-environment party     0.06       0.02   683.32    2.27 0.023  0.01  0.11
+```
+
+```r
+(VC.H5.exp.news.mod6<-getVC(H5.exp.news.mod6))
+```
+
+```
+##             grp                      var1                      var2      est_SD       est_SD2
+## 1  voting.group               (Intercept)                      <NA>  0.19777034  3.911311e-02
+## 2  voting.group              environ.lvl1                      <NA>  0.04031794  1.625536e-03
+## 3  voting.group              polnews.lvl1                      <NA>  0.02912348  8.481772e-04
+## 4  voting.group environ.lvl1:polnews.lvl1                      <NA>  0.01253524  1.571323e-04
+## 5  voting.group               (Intercept)              environ.lvl1  0.07569809  6.035933e-04
+## 6  voting.group               (Intercept)              polnews.lvl1 -0.01046148 -6.025564e-05
+## 7  voting.group               (Intercept) environ.lvl1:polnews.lvl1 -0.26477237 -6.563970e-04
+## 8  voting.group              environ.lvl1              polnews.lvl1 -0.03841581 -4.510780e-05
+## 9  voting.group              environ.lvl1 environ.lvl1:polnews.lvl1 -0.02683966 -1.356463e-05
+## 10 voting.group              polnews.lvl1 environ.lvl1:polnews.lvl1 -0.96052025 -3.506570e-04
+## 11        cntry               (Intercept)                      <NA>  0.48279116  2.330873e-01
+## 12        cntry              environ.lvl1                      <NA>  0.03914727  1.532509e-03
+## 13        cntry              polnews.lvl1                      <NA>  0.02711379  7.351575e-04
+## 14        cntry environ.lvl1:polnews.lvl1                      <NA>  0.02400230  5.761102e-04
+## 15        cntry               (Intercept)              environ.lvl1 -0.02005174 -3.789770e-04
+## 16        cntry               (Intercept)              polnews.lvl1  0.45045941  5.896648e-03
+## 17        cntry               (Intercept) environ.lvl1:polnews.lvl1 -0.40919557 -4.741798e-03
+## 18        cntry              environ.lvl1              polnews.lvl1  0.07246194  7.691334e-05
+## 19        cntry              environ.lvl1 environ.lvl1:polnews.lvl1  0.74793761  7.027804e-04
+## 20        cntry              polnews.lvl1 environ.lvl1:polnews.lvl1 -0.32870414 -2.139184e-04
+## 21     Residual                      <NA>                      <NA>  1.02754700  1.055853e+00
+```
+
+#### Refit with manually coded level-1 interaction
+
+
+```r
+dat.H5.news$env.news.int<-dat.H5.news$environ.lvl1*dat.H5.news$polnews.lvl1
+
+H5.exp.news.mod6<-lmer(refugees~
+                (environ.lvl1+polnews.lvl1+env.news.int|voting.group)+
+                (environ.lvl1+polnews.lvl1+env.news.int|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                polnews.lvl1+
+                env.news.int+
+                all.parties.lvl2+
+                environ.lvl1:all.parties.lvl2+
+                polnews.lvl1:all.parties.lvl2+
+                env.news.int:all.parties.lvl2
+                ,data=dat.H5.news,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```
+## Warning: Some predictor variables are on very different scales: consider rescaling
+```
+
+```r
+isSingular(H5.exp.news.mod6)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+anova(H5.exp.news.mod5,H5.exp.news.mod6)
+```
+
+```
+## Data: dat.H5.news
+## Models:
+## H5.exp.news.mod5: refugees ~ (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod5:     voting.group) + (environ.lvl1 + polnews.lvl1 + environ.lvl1:polnews.lvl1 | 
+## H5.exp.news.mod5:     cntry) + age + gender + educ + resid + occup + environ.lvl1 + 
+## H5.exp.news.mod5:     polnews.lvl1 + environ.lvl1:polnews.lvl1 + all.parties.lvl2 + 
+## H5.exp.news.mod5:     environ.lvl1:all.parties.lvl2 + polnews.lvl1:all.parties.lvl2
+## H5.exp.news.mod6: refugees ~ (environ.lvl1 + polnews.lvl1 + env.news.int | voting.group) + 
+## H5.exp.news.mod6:     (environ.lvl1 + polnews.lvl1 + env.news.int | cntry) + age + 
+## H5.exp.news.mod6:     gender + educ + resid + occup + environ.lvl1 + polnews.lvl1 + 
+## H5.exp.news.mod6:     env.news.int + all.parties.lvl2 + environ.lvl1:all.parties.lvl2 + 
+## H5.exp.news.mod6:     polnews.lvl1:all.parties.lvl2 + env.news.int:all.parties.lvl2
+##                  npar    AIC    BIC logLik deviance  Chisq Df Pr(>Chisq)
+## H5.exp.news.mod5   68 103396 103973 -51630   103260                     
+## H5.exp.news.mod6   77 103400 104052 -51623   103246 14.446  9     0.1073
+```
+
+```r
+(FE.H5.exp.news.mod6<-getFE(H5.exp.news.mod6))
+```
+
+```
+##                                                         Estimate Std..Error       df t.value     p    LL    UL
+## (Intercept)                                                -0.47       0.14    61.96   -3.23 0.002 -0.76 -0.18
+## age                                                         0.00       0.00 35078.90    3.87 0.000  0.00  0.00
+## gender                                                      0.06       0.01 35308.32    5.09 0.000  0.04  0.08
+## educ                                                        0.01       0.00 35341.53    7.43 0.000  0.01  0.02
+## resid                                                      -0.06       0.01 35392.16   -5.02 0.000 -0.08 -0.04
+## occupClerical support workers                              -0.04       0.09 35278.52   -0.50 0.614 -0.22  0.13
+## occupCraft and related trades workers                      -0.06       0.09 35284.18   -0.72 0.472 -0.24  0.11
+## occupElementary occupations                                 0.01       0.09 35279.78    0.14 0.885 -0.16  0.19
+## occupManagers                                              -0.02       0.09 35268.30   -0.22 0.828 -0.19  0.15
+## occupOther: Not in paid work                                0.12       0.09 35335.92    1.35 0.178 -0.06  0.30
+## occupPlant and machine operators, and assemblers           -0.06       0.09 35281.45   -0.71 0.479 -0.24  0.11
+## occupProfessionals                                          0.07       0.09 35277.61    0.79 0.429 -0.10  0.24
+## occupRetired                                               -0.04       0.10 35256.92   -0.43 0.670 -0.23  0.15
+## occupService and sales workers                             -0.04       0.09 35276.44   -0.46 0.648 -0.21  0.13
+## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09 35301.10   -0.57 0.567 -0.24  0.13
+## occupTechnicians and associate professionals               -0.03       0.09 35272.90   -0.37 0.708 -0.20  0.14
+## occupUnemployed                                            -0.03       0.11 35270.69   -0.32 0.746 -0.25  0.18
+## environ.lvl1                                                0.11       0.02   108.17    5.65 0.000  0.07  0.15
+## polnews.lvl1                                                0.03       0.02   143.52    1.39 0.168 -0.01  0.06
+## env.news.int                                               -0.04       0.02   190.57   -2.51 0.013 -0.07 -0.01
+## all.parties.lvl2Did not vote                                0.45       0.06   182.48    7.01 0.000  0.32  0.57
+## all.parties.lvl2Don't know                                  0.42       0.07   268.51    5.95 0.000  0.28  0.56
+## all.parties.lvl2Invalid vote                                0.49       0.36  1122.96    1.37 0.172 -0.21  1.19
+## all.parties.lvl2NE age                                      0.73       0.07   273.77   10.37 0.000  0.60  0.87
+## all.parties.lvl2NE citizen                                  0.86       0.08   268.93   11.22 0.000  0.71  1.01
+## all.parties.lvl2NE other                                    0.71       0.10   656.95    7.29 0.000  0.52  0.91
+## all.parties.lvl2No answer                                   0.55       0.38  1407.01    1.45 0.149 -0.20  1.29
+## all.parties.lvl2Other party                                 0.55       0.05   230.47   11.30 0.000  0.45  0.64
+## all.parties.lvl2Pro-environment party                       0.91       0.06   255.65   13.98 0.000  0.78  1.04
+## environ.lvl1:all.parties.lvl2Did not vote                   0.00       0.02    84.04    0.00 0.998 -0.04  0.04
+## environ.lvl1:all.parties.lvl2Don't know                     0.03       0.03   333.35    0.91 0.366 -0.04  0.10
+## environ.lvl1:all.parties.lvl2Invalid vote                   0.11       0.40 25949.51    0.27 0.788 -0.67  0.89
+## environ.lvl1:all.parties.lvl2NE age                         0.04       0.03   233.55    1.25 0.214 -0.02  0.10
+## environ.lvl1:all.parties.lvl2NE citizen                    -0.04       0.03   228.85   -1.11 0.268 -0.10  0.03
+## environ.lvl1:all.parties.lvl2NE other                       0.03       0.06  1249.48    0.60 0.548 -0.08  0.14
+## environ.lvl1:all.parties.lvl2No answer                      0.23       0.23  7977.81    1.00 0.318 -0.23  0.69
+## environ.lvl1:all.parties.lvl2Other party                    0.02       0.02   131.21    0.87 0.387 -0.02  0.05
+## environ.lvl1:all.parties.lvl2Pro-environment party          0.03       0.03   190.33    0.90 0.367 -0.03  0.08
+## polnews.lvl1:all.parties.lvl2Did not vote                  -0.02       0.02    93.48   -0.82 0.415 -0.06  0.03
+## polnews.lvl1:all.parties.lvl2Don't know                    -0.06       0.04   498.33   -1.74 0.083 -0.13  0.01
+## polnews.lvl1:all.parties.lvl2Invalid vote                  -0.08       0.34 22208.83   -0.23 0.820 -0.75  0.59
+## polnews.lvl1:all.parties.lvl2NE age                        -0.02       0.03   336.27   -0.61 0.544 -0.08  0.04
+## polnews.lvl1:all.parties.lvl2NE citizen                    -0.02       0.04   308.09   -0.67 0.504 -0.09  0.05
+## polnews.lvl1:all.parties.lvl2NE other                      -0.03       0.06  2838.89   -0.40 0.686 -0.15  0.10
+## polnews.lvl1:all.parties.lvl2No answer                     -0.37       0.43 29076.49   -0.85 0.394 -1.21  0.48
+## polnews.lvl1:all.parties.lvl2Other party                    0.01       0.02   161.97    0.37 0.709 -0.03  0.05
+## polnews.lvl1:all.parties.lvl2Pro-environment party          0.00       0.03   284.91    0.03 0.977 -0.06  0.06
+## env.news.int:all.parties.lvl2Did not vote                   0.03       0.02   229.83    1.71 0.089  0.00  0.07
+## env.news.int:all.parties.lvl2Don't know                     0.02       0.03  1291.76    0.78 0.436 -0.04  0.08
+## env.news.int:all.parties.lvl2Invalid vote                   0.45       0.58 34650.11    0.77 0.444 -0.70  1.59
+## env.news.int:all.parties.lvl2NE age                         0.02       0.03   961.67    0.87 0.386 -0.03  0.08
+## env.news.int:all.parties.lvl2NE citizen                     0.09       0.03   824.91    3.22 0.001  0.04  0.15
+## env.news.int:all.parties.lvl2NE other                       0.02       0.05  4486.56    0.37 0.715 -0.08  0.11
+## env.news.int:all.parties.lvl2No answer                     -0.04       0.32 31141.58   -0.13 0.900 -0.66  0.58
+## env.news.int:all.parties.lvl2Other party                    0.04       0.02   390.06    2.63 0.009  0.01  0.08
+## env.news.int:all.parties.lvl2Pro-environment party          0.06       0.02   683.34    2.27 0.023  0.01  0.11
+```
+
+```r
+(VC.H5.exp.news.mod6<-getVC(H5.exp.news.mod6))
+```
+
+```
+##             grp         var1         var2      est_SD       est_SD2
+## 1  voting.group  (Intercept)         <NA>  0.19777011  3.911302e-02
+## 2  voting.group environ.lvl1         <NA>  0.04031781  1.625526e-03
+## 3  voting.group polnews.lvl1         <NA>  0.02912369  8.481895e-04
+## 4  voting.group env.news.int         <NA>  0.01253505  1.571275e-04
+## 5  voting.group  (Intercept) environ.lvl1  0.07569780  6.035883e-04
+## 6  voting.group  (Intercept) polnews.lvl1 -0.01046183 -6.025800e-05
+## 7  voting.group  (Intercept) env.news.int -0.26477408 -6.563903e-04
+## 8  voting.group environ.lvl1 polnews.lvl1 -0.03840948 -4.510055e-05
+## 9  voting.group environ.lvl1 env.news.int -0.02684509 -1.356712e-05
+## 10 voting.group polnews.lvl1 env.news.int -0.96051970 -3.506540e-04
+## 11        cntry  (Intercept)         <NA>  0.48279638  2.330923e-01
+## 12        cntry environ.lvl1         <NA>  0.03914714  1.532499e-03
+## 13        cntry polnews.lvl1         <NA>  0.02711396  7.351667e-04
+## 14        cntry env.news.int         <NA>  0.02400230  5.761106e-04
+## 15        cntry  (Intercept) environ.lvl1 -0.02005803 -3.790988e-04
+## 16        cntry  (Intercept) polnews.lvl1  0.45046839  5.896866e-03
+## 17        cntry  (Intercept) env.news.int -0.40921099 -4.742029e-03
+## 18        cntry environ.lvl1 polnews.lvl1  0.07245464  7.690582e-05
+## 19        cntry environ.lvl1 env.news.int  0.74793891  7.027795e-04
+## 20        cntry polnews.lvl1 env.news.int -0.32871318 -2.139257e-04
+## 21     Residual         <NA>         <NA>  1.02754701  1.055853e+00
+```
+
+
+#### Marginal effect for pro-environment and anti-immigration voters
+
+
+```r
+H5.exp.news.mod6.trends<-emtrends(H5.exp.news.mod6,specs = c("all.parties.lvl2"),var=c("env.news.int"))
+(H5.exp.news.mod6.trends.tab<-data.frame(H5.exp.news.mod6.trends))
+```
+
+```
+##          all.parties.lvl2 env.news.int.trend          SE  df    asymp.LCL    asymp.UCL
+## 1  Anti-immigration party       -0.039341965 0.015666246 Inf -0.070047243 -0.008636688
+## 2            Did not vote       -0.008904728 0.011350070 Inf -0.031150457  0.013341001
+## 3              Don't know       -0.015395924 0.027527224 Inf -0.069348292  0.038556443
+## 4            Invalid vote        0.408057711 0.584542696 Inf -0.737624920  1.553740341
+## 5                  NE age       -0.016160217 0.022944451 Inf -0.061130515  0.028810082
+## 6              NE citizen        0.052434017 0.024900760 Inf  0.003629425  0.101238610
+## 7                NE other       -0.021775930 0.046157538 Inf -0.112243041  0.068691181
+## 8               No answer       -0.078891894 0.314912820 Inf -0.696109679  0.538325891
+## 9             Other party        0.003768864 0.008846732 Inf -0.013570411  0.021108139
+## 10  Pro-environment party        0.017392344 0.020815457 Inf -0.023405203  0.058189890
+```
+
+```r
+H5.exp.news.mod6.trends.tab$p<-
+  2*(1-pnorm(abs(H5.exp.news.mod6.trends.tab$env.news.int.trend/
+                   H5.exp.news.mod6.trends.tab$SE)))
+H5.exp.news.mod6.trends.tab$adj.p<-
+  p.adjust(H5.exp.news.mod6.trends.tab$p,method="holm")
+
+H5.exp.news.mod6.trends.tab<-
+  cbind(group=H5.exp.news.mod6.trends.tab[,1],
+      round(H5.exp.news.mod6.trends.tab[,c(2,3)],2),
+      round(H5.exp.news.mod6.trends.tab[,c(7,8)],4),
+      round(H5.exp.news.mod6.trends.tab[,c(5,6)],2))
+H5.exp.news.mod6.trends.tab
+```
+
+```
+##                     group env.news.int.trend   SE      p  adj.p asymp.LCL asymp.UCL
+## 1  Anti-immigration party              -0.04 0.02 0.0120 0.1203     -0.07     -0.01
+## 2            Did not vote              -0.01 0.01 0.4327 1.0000     -0.03      0.01
+## 3              Don't know              -0.02 0.03 0.5760 1.0000     -0.07      0.04
+## 4            Invalid vote               0.41 0.58 0.4851 1.0000     -0.74      1.55
+## 5                  NE age              -0.02 0.02 0.4812 1.0000     -0.06      0.03
+## 6              NE citizen               0.05 0.02 0.0352 0.3171      0.00      0.10
+## 7                NE other              -0.02 0.05 0.6371 1.0000     -0.11      0.07
+## 8               No answer              -0.08 0.31 0.8022 1.0000     -0.70      0.54
+## 9             Other party               0.00 0.01 0.6701 1.0000     -0.01      0.02
+## 10  Pro-environment party               0.02 0.02 0.4034 1.0000     -0.02      0.06
+```
+
+```r
+write.csv2(H5.exp.news.mod6.trends.tab,"H5.exp.news.mod6.trends.tab.csv")
+
+
+
+#contrast between anti-immigration and pro-environment
+(H5.exp.news.contrast<-data.frame(pairs(H5.exp.news.mod6.trends, exclude = c(2:9),reverse=T)))
+```
+
+```
+##                                         contrast   estimate        SE  df  z.ratio    p.value
+## 1 Pro-environment party - Anti-immigration party 0.05673431 0.0249874 Inf 2.270516 0.02317627
+```
+
+```r
+#contrast for all groups against mean of other groups
+contrast(H5.exp.news.mod6.trends, "del.eff", by = NULL,adjust=c("holm"))
+```
+
+```
+##  contrast                      estimate     SE  df z.ratio p.value
+##  Anti-immigration party effect  -0.0772 0.0756 Inf -1.021  1.0000 
+##  Did not vote effect            -0.0434 0.0748 Inf -0.579  1.0000 
+##  Don't know effect              -0.0506 0.0789 Inf -0.641  1.0000 
+##  Invalid vote effect             0.4199 0.5856 Inf  0.717  1.0000 
+##  NE age effect                  -0.0514 0.0774 Inf -0.664  1.0000 
+##  NE citizen effect               0.0248 0.0780 Inf  0.318  1.0000 
+##  NE other effect                -0.0577 0.0870 Inf -0.662  1.0000 
+##  No answer effect               -0.1211 0.3216 Inf -0.377  1.0000 
+##  Other party effect             -0.0293 0.0745 Inf -0.393  1.0000 
+##  Pro-environment party effect   -0.0141 0.0768 Inf -0.184  1.0000 
+## 
+## Results are averaged over the levels of: gender, resid, occup 
+## Degrees-of-freedom method: asymptotic 
+## P value adjustment: holm method for 10 tests
+```
+
+```r
+#contrast for three voting groups
+(H5.exp.news.more.contrasts<-data.frame(pairs(H5.exp.news.mod6.trends, 
+         exclude=c(2:8), by = NULL,adjust=c("holm"),reverse=T)))
+```
+
+```
+##                                         contrast   estimate         SE  df   z.ratio    p.value
+## 1           Other party - Anti-immigration party 0.04311083 0.01637828 Inf 2.6321952 0.02545053
+## 2 Pro-environment party - Anti-immigration party 0.05673431 0.02498740 Inf 2.2705164 0.04635253
+## 3            Pro-environment party - Other party 0.01362348 0.02129393 Inf 0.6397825 0.52231404
 ```
 

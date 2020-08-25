@@ -7,6 +7,9 @@ output:
     toc_depth: 5
 ---
 
+
+
+
 # Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes
 
 ### Model 0: Intercepts only
@@ -316,6 +319,11 @@ write.csv2(voting.group.slopes.dat,"associations_within_voting_groups.csv")
 ##### Print a forest plot
 
 ```{r, code = readLines("forestplot.R")}
+```
+
+##### Confidence intervals for supplementary tables
+
+```{r, code = readLines("CI_for_supplement.R")}
 ```
 
 \newpage

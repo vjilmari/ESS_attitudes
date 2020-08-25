@@ -7,6 +7,9 @@ output:
     toc_depth: 5
 ---
 
+
+\newpage
+
 # Preparations
 
 
@@ -837,6 +840,7 @@ table(dat$analysis.miss)
 dat<-dat %>%
   filter(analysis.miss ==0)
 ```
+
 
 # Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes
 
@@ -2000,6 +2004,219 @@ dev.off()
 ```
 ## null device 
 ##           1
+```
+
+##### Confidence intervals for supplementary tables
+
+
+```r
+cor.dat<-read.csv2("associations_within_voting_groups.csv",
+                   stringsAsFactors = F)
+
+library(metafor)
+library(numform)
+```
+
+```
+## 
+## Attaching package: 'numform'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     collapse
+```
+
+```r
+cor.dat$observed_r.z<-transf.rtoz(cor.dat$observed_r)
+cor.dat$r.SE<-1/sqrt(cor.dat$n.y-3)
+```
+
+```
+## Warning in sqrt(cor.dat$n.y - 3): NaNs produced
+```
+
+```r
+cor.dat$LL<-transf.ztor(cor.dat$observed_r.z+qnorm(.025)*cor.dat$r.SE)
+cor.dat$UL<-transf.ztor(cor.dat$observed_r.z+qnorm(.975)*cor.dat$r.SE)
+cor.dat$z<-cor.dat$observed_r.z/cor.dat$r.SE
+cor.dat$p<-(1-pnorm(abs(cor.dat$z)))*2
+
+
+
+
+anti.imm.r<-cbind.data.frame(group=cor.dat[cor.dat$anti.imm==1,c("voting.group")],
+                            round(cor.dat[cor.dat$anti.imm==1,c("observed_r","LL","UL")],2),
+                            p=round(cor.dat[cor.dat$anti.imm==1,c("p")],3))
+
+anti.imm.r$r<-f_num(x=anti.imm.r[,"observed_r"],digits=2)
+
+
+anti.imm.r$CI<-paste0("[",
+                     f_num(x=anti.imm.r[,"LL"],digits=2),", ",
+                     f_num(x=anti.imm.r[,"UL"],digits=2),"]")
+
+anti.imm.r$pno0<-f_num(x=anti.imm.r[,"p"],digits=3)
+anti.imm.r
+```
+
+```
+##                                                                 group
+## 1                                                             AT: BZÖ
+## 4                                                             AT: FPÖ
+## 22                                                           BE: N-VA
+## 28                                                BE: Parti Populaire
+## 34                                                  BE: Vlaams Belang
+## 42                                       CH: Federal Democratic Union
+## 51                                           CH: Swiss People's Party
+## 52                                                  CH: Ticino League
+## 62                                                            CZ: ODS
+## 66                                                          CZ: Usvit
+## 67                                                            DE: AfD
+## 77                                                            DE: NPD
+## 85                              EE: Eesti Konservatiivne Rahvaerakond
+## 111                                          ES: Partido Popular - PP
+## 129                                                    FI: True Finns
+## 136                                           FR: FN (Front National)
+## 138                                FR: MPF (Mouvement pour la France)
+## 148                       FR: UMP (Union pour un Mouvement Populaire)
+## 149                                                  GB: Conservative
+## 150                               GB: Democratic Unionist Party (nir)
+## 163                                         GB: UK Independence Party
+## 166 HU: Fidesz - KDNP (Fidesz – Magyar Polgári Szövetség Keresztényd)
+## 167                      HU: Jobbik (Jobbik Magyarországért Mozgalom)
+## 190                                             IT: Fratelli d'Italia
+## 192                                                     IT: Lega Nord
+## 199                                    IT: Popolo delle Libertà (PdL)
+## 234                                             NL: Party for Freedom
+## 237                                      NL: Reformed Political Party
+## 252                                          NO: Progress Party (FRP)
+## 258                                                        PL: KORWIN
+## 259                                                      PL: Kukiz'15
+## 298                                           SE: Sverigedemokraterna
+## 311                           SI: SDS - Slovenska demokratska stranka
+##     observed_r    LL   UL     p    r            CI  pno0
+## 1         0.00 -0.63 0.63 1.000  .00   [-.63, .63] 1.000
+## 4         0.26  0.14 0.37 0.000  .26    [.14, .37]  .000
+## 22       -0.03 -0.15 0.09 0.608 -.03   [-.15, .09]  .608
+## 28       -0.10 -0.90 0.86 0.885 -.10   [-.90, .86]  .885
+## 34        0.19 -0.19 0.51 0.325  .19   [-.19, .51]  .325
+## 42        0.87 -1.00 1.00 1.000  .87 [-1.00, 1.00] 1.000
+## 51        0.01 -0.15 0.17 0.909  .01   [-.15, .17]  .909
+## 52          NA    NA   NA    NA <NA>      [NA, NA]  <NA>
+## 62        0.19  0.00 0.37 0.055  .19    [.00, .37]  .055
+## 66        0.36  0.04 0.62 0.029  .36    [.04, .62]  .029
+## 67        0.00 -0.26 0.26 0.990  .00   [-.26, .26]  .990
+## 77        0.16 -0.52 0.72 0.663  .16   [-.52, .72]  .663
+## 85        0.02 -0.21 0.26 0.848  .02   [-.21, .26]  .848
+## 111       0.10 -0.01 0.20 0.089  .10   [-.01, .20]  .089
+## 129       0.14  0.00 0.28 0.051  .14    [.00, .28]  .051
+## 136       0.28  0.11 0.44 0.002  .28    [.11, .44]  .002
+## 138      -0.22 -0.60 0.25 0.359 -.22   [-.60, .25]  .359
+## 148       0.16  0.05 0.27 0.006  .16    [.05, .27]  .006
+## 149       0.21  0.13 0.30 0.000  .21    [.13, .30]  .000
+## 150       0.19 -0.66 0.83 0.696  .19   [-.66, .83]  .696
+## 163       0.08 -0.11 0.27 0.422  .08   [-.11, .27]  .422
+## 166       0.24  0.16 0.32 0.000  .24    [.16, .32]  .000
+## 167       0.21  0.00 0.40 0.054  .21    [.00, .40]  .054
+## 190       0.01 -0.37 0.38 0.968  .01   [-.37, .38]  .968
+## 192      -0.10 -0.32 0.13 0.388 -.10   [-.32, .13]  .388
+## 199       0.20  0.01 0.38 0.038  .20    [.01, .38]  .038
+## 234      -0.03 -0.23 0.17 0.771 -.03   [-.23, .17]  .771
+## 237       0.41 -0.02 0.71 0.058  .41   [-.02, .71]  .058
+## 252       0.19  0.02 0.36 0.033  .19    [.02, .36]  .033
+## 258      -0.13 -0.45 0.22 0.463 -.13   [-.45, .22]  .463
+## 259       0.03 -0.17 0.23 0.763  .03   [-.17, .23]  .763
+## 298       0.08 -0.12 0.28 0.422  .08   [-.12, .28]  .422
+## 311       0.14 -0.03 0.30 0.116  .14   [-.03, .30]  .116
+```
+
+```r
+write.csv2(anti.imm.r,"anti.imm.r.csv")
+
+pro.env.r<-cbind.data.frame(group=cor.dat[cor.dat$pro.env==1,c("voting.group")],
+                             round(cor.dat[cor.dat$pro.env==1,c("observed_r","LL","UL")],2),
+                             p=round(cor.dat[cor.dat$pro.env==1,c("p")],3))
+
+pro.env.r$r<-f_num(x=pro.env.r[,"observed_r"],digits=2)
+
+
+pro.env.r$CI<-paste0("[",
+                     f_num(x=pro.env.r[,"LL"],digits=2),", ",
+                     f_num(x=pro.env.r[,"UL"],digits=2),"]")
+
+pro.env.r$pno0<-f_num(x=pro.env.r[,"p"],digits=3)
+pro.env.r
+```
+
+```
+##                                                  group observed_r    LL   UL
+## 5                                            AT: Grüne       0.27  0.13 0.40
+## 19                                           BE: Ecolo       0.11 -0.15 0.35
+## 20                                          BE: Groen!      -0.03 -0.25 0.19
+## 44                                     CH: Green Party       0.09 -0.16 0.33
+## 50                         CH: Social Democratic Party       0.35  0.19 0.49
+## 68                          DE: Bündnis 90/ Die Grünen       0.18  0.05 0.30
+## 88                      EE: Erakond Eestimaa Rohelised       0.49 -0.11 0.83
+## 118                                   FI: Green League       0.19  0.04 0.33
+## 130                  FR: Autres mouvements écologistes      -0.01 -0.45 0.44
+## 134               FR: EELV (Europe Ecologie Les Verts)      -0.01 -0.26 0.24
+## 153                                    GB: Green Party       0.39  0.08 0.63
+## 168                     HU: LMP (Lehet Más A Politika)      -0.08 -0.53 0.40
+## 180                                    IE: Green Party       0.12 -0.28 0.49
+## 193                             IT: Movimento 5 Stelle       0.31  0.19 0.43
+## 201                   IT: Rivoluzione Civile (Ingroia)       0.76 -1.00 1.00
+## 203              IT: Sinistra Ecologia e Libertà (SEL)       0.34 -0.06 0.65
+## 211                  LT: Lithuanian Greens Party (LZP)       0.35 -0.47 0.85
+## 212     LT: Lithuanian Peasant and Greens Union (LVZS)       0.15  0.02 0.27
+## 227                                     NL: Green Left       0.03 -0.22 0.28
+## 235                          NL: Party for the Animals      -0.26 -0.57 0.11
+## 245                              NO: Green Party (MDG)      -0.06 -0.39 0.29
+## 247                              NO: Liberal Party (V)       0.05 -0.23 0.32
+## 254                      NO: Socialist Left Party (SV)       0.12 -0.13 0.37
+## 269                       PT: B.E. - Bloco de Esquerda       0.12 -0.13 0.36
+## 273                         PT: MPT - Partido da Terra         NA    NA   NA
+## 278                 PT: PAN - Pessoas-Animais-Natureza      -0.04 -0.62 0.58
+## 286                    SE: FI (Feministiskt initiativ)       0.33 -0.05 0.63
+## 289                          SE: Miljöpartiet de gröna       0.45  0.28 0.60
+## 299                                 SE: Vänsterpartiet       0.40  0.20 0.57
+## 314 SI: ZL - Združena levica (DSD, IDS in Stranka TRS)       0.06 -0.33 0.43
+##         p    r            CI  pno0
+## 5   0.000  .27    [.13, .40]  .000
+## 19  0.408  .11   [-.15, .35]  .408
+## 20  0.778 -.03   [-.25, .19]  .778
+## 44  0.485  .09   [-.16, .33]  .485
+## 50  0.000  .35    [.19, .49]  .000
+## 68  0.005  .18    [.05, .30]  .005
+## 88  0.105  .49   [-.11, .83]  .105
+## 118 0.016  .19    [.04, .33]  .016
+## 130 0.978 -.01   [-.45, .44]  .978
+## 134 0.940 -.01   [-.26, .24]  .940
+## 153 0.014  .39    [.08, .63]  .014
+## 168 0.762 -.08   [-.53, .40]  .762
+## 180 0.561  .12   [-.28, .49]  .561
+## 193 0.000  .31    [.19, .43]  .000
+## 201 1.000  .76 [-1.00, 1.00] 1.000
+## 203 0.092  .34   [-.06, .65]  .092
+## 211 0.409  .35   [-.47, .85]  .409
+## 212 0.023  .15    [.02, .27]  .023
+## 227 0.815  .03   [-.22, .28]  .815
+## 235 0.169 -.26   [-.57, .11]  .169
+## 245 0.751 -.06   [-.39, .29]  .751
+## 247 0.737  .05   [-.23, .32]  .737
+## 254 0.345  .12   [-.13, .37]  .345
+## 269 0.350  .12   [-.13, .36]  .350
+## 273    NA <NA>      [NA, NA]  <NA>
+## 278 0.920 -.04   [-.62, .58]  .920
+## 286 0.083  .33   [-.05, .63]  .083
+## 289 0.000  .45    [.28, .60]  .000
+## 299 0.000  .40    [.20, .57]  .000
+## 314 0.777  .06   [-.33, .43]  .777
+```
+
+```r
+write.csv2(pro.env.r,"pro.env.r.csv")
 ```
 
 \newpage

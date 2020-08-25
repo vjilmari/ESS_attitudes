@@ -7,9 +7,9 @@ output:
     toc_depth: 5
 ---
 
-# Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 
+# Exploratory Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among those who consume political news more
 
-Omit missing values on political interest item
+Omit missing values on political news consumption item
 
 ```{r}
 dat.H5.news<-dat %>%

@@ -1,0 +1,18 @@
+"";"Estimate";"Std..Error";"df";"t.value";"p";"LL";"UL"
+"(Intercept)";0,03;0,11;19271,69;0,28;0,778;-0,19;0,25
+"age";0;0;26347,7;-2,7;0,007;0;0
+"gender";0,1;0,02;26757,71;6,49;0;0,07;0,13
+"educ";0,03;0;26811,38;14,59;0;0,03;0,04
+"resid";-0,12;0,02;26849,56;-7,87;0;-0,15;-0,09
+"occupClerical support workers";-0,02;0,11;26727,2;-0,17;0,863;-0,23;0,2
+"occupCraft and related trades workers";-0,14;0,11;26731,95;-1,28;0,202;-0,35;0,08
+"occupElementary occupations";0;0,11;26736,38;-0,04;0,969;-0,22;0,21
+"occupManagers";0,07;0,11;26728,08;0,6;0,549;-0,15;0,28
+"occupOther: Not in paid work";0,18;0,11;26834,31;1,58;0,115;-0,04;0,4
+"occupPlant and machine operators, and assemblers";-0,07;0,11;26734,02;-0,65;0,517;-0,29;0,15
+"occupProfessionals";0,19;0,11;26724,72;1,75;0,08;-0,02;0,4
+"occupRetired";0,03;0,12;26732,28;0,22;0,83;-0,22;0,27
+"occupService and sales workers";-0,07;0,11;26727,59;-0,63;0,527;-0,28;0,14
+"occupSkilled agricultural, forestry and fishery workers";-0,02;0,12;26730,64;-0,18;0,859;-0,25;0,21
+"occupTechnicians and associate professionals";0;0,11;26723,36;0,04;0,97;-0,21;0,22
+"occupUnemployed";-0,02;0,14;26752,26;-0,13;0,898;-0,28;0,25

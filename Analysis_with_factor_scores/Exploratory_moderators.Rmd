@@ -1,0 +1,547 @@
+---
+title: 'Exploratory analysis: covariate moderation'
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
+---
+
+# Preparations
+
+```{r child = 'Preparations.Rmd'}
+```
+
+
+# Exploratory analyses for moderators
+
+## Does the association vary by age?
+
+### Center the age variable
+
+```{r}
+
+describe(dat$age)
+
+#already grand-mean centered
+
+#obtain dataframe with country means and add to data
+
+age.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(age.cntry=mean(age,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=age.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$age.cntrymc<-dat$age-dat$age.cntry
+
+#obtain dataframe with voting group means and add to data
+
+age.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(age.voting.group=mean(age.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=age.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$age.vgmc<-dat$age.cntrymc-dat$age.voting.group
+
+#describe the variable
+
+describe(dat$age.vgmc)
+
+#rename as lvl1, lvl2, and lvl3
+
+dat$age.lvl1<-dat$age.vgmc
+dat$age.lvl2<-dat$age.voting.group
+dat$age.lvl3<-dat$age.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered age)
+
+* Divide age variable by 10 to give interpretation by a decade
+
+```{r}
+
+dat$age.lvl1.10<-dat$age.lvl1/10
+
+EX3.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                gender+occup+educ+resid+
+                 age.lvl1.10+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX3.mod1)
+(VC.EX3.mod1<-getVC(EX3.mod1))
+getFE(EX3.mod1)
+```
+
+
+\newpage
+
+### Model 2 (interaction between age and environmental attitudes)
+
+```{r}
+EX3.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                gender+occup+educ+resid+
+                 age.lvl1.10+
+                environ.lvl1+
+                 age.lvl1.10:environ.lvl1,
+                 data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+anova(EX3.mod1,EX3.mod2)
+isSingular(EX3.mod2)
+(VC.EX3.mod2<-getVC(EX3.mod2))
+getFE(EX3.mod2)
+
+
+```
+
+
+\newpage
+
+#### Marginal effects for ages at -1SD and +1SD
+
+```{r message=FALSE}
+
+EX3.mod2.trends<-
+  emtrends(EX3.mod2,specs = c("age.lvl1.10"),var=c("environ.lvl1"),
+           at=list(age.lvl1.10=c(
+             
+             mean(dat$age.lvl1.10)-sd(dat$age.lvl1.10),
+             mean(dat$age.lvl1.10),
+             mean(dat$age.lvl1.10)+sd(dat$age.lvl1.10)
+             )))
+
+(EX3.mod2.trends.tab<-data.frame(EX3.mod2.trends))
+
+
+EX3.mod2.trends.tab$p<-
+  2*(1-pnorm(abs(EX3.mod2.trends.tab$environ.lvl1.trend/
+                   EX3.mod2.trends.tab$SE)))
+EX3.mod2.trends.tab$adj.p<-
+  p.adjust(EX3.mod2.trends.tab$p,method="holm")
+
+EX3.mod2.trends.tab<-
+  cbind(group=round(EX3.mod2.trends.tab[,1],2),
+      round(EX3.mod2.trends.tab[,c(2,3)],2),
+      round(EX3.mod2.trends.tab[,c(7,8)],4),
+      round(EX3.mod2.trends.tab[,c(5,6)],2))
+EX3.mod2.trends.tab
+
+pairs(EX3.mod2.trends,adjust="none")
+
+```
+
+\newpage
+
+## Does the association vary by sex?
+
+### Center the sex variable
+
+```{r}
+
+describe(dat$gender)
+
+#grand mean center
+dat$gender.gmc<-dat$gender-mean(dat$gender,na.rm=T)
+
+#obtain dataframe with country means and add to data
+
+gender.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(gender.cntry=mean(gender.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=gender.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$gender.cntrymc<-dat$gender.gmc-dat$gender.cntry
+
+#obtain dataframe with voting group means and add to data
+
+gender.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(gender.voting.group=mean(gender.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=gender.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$gender.vgmc<-dat$gender.cntrymc-dat$gender.voting.group
+
+#describe the variable
+
+describe(dat$gender.vgmc)
+
+#rename as lvl1, lvl2, and lvl3
+
+dat$gender.lvl1<-dat$gender.vgmc
+dat$gender.lvl2<-dat$gender.voting.group
+dat$gender.lvl3<-dat$gender.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered sex)
+
+```{r}
+
+EX1.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                age+occup+educ+resid+
+                 gender.lvl1+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX1.mod1)
+getVC(EX1.mod1)
+getFE(EX1.mod1)
+
+```
+
+\newpage
+
+### Model 2 (interaction between sex and environmental attitudes)
+
+```{r}
+EX1.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                age+occup+educ+resid+
+                 gender.lvl1+
+                environ.lvl1+
+                 gender.lvl1:environ.lvl1,
+                 data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+anova(EX1.mod1,EX1.mod2)
+isSingular(EX1.mod2)
+getVC(EX1.mod2)
+getFE(EX1.mod2)
+```
+
+\newpage
+
+
+## Does the association vary by education (years)?
+
+### Center the education variable
+
+```{r}
+
+describe(dat$educ)
+
+#already grand-mean centered
+
+#obtain dataframe with country means and add to data
+
+educ.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(educ.cntry=mean(educ,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=educ.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$educ.cntrymc<-dat$educ-dat$educ.cntry
+
+#obtain dataframe with voting group means and add to data
+
+educ.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(educ.voting.group=mean(educ.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=educ.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$educ.vgmc<-dat$educ.cntrymc-dat$educ.voting.group
+
+#describe the variable
+
+describe(dat$educ.vgmc)
+
+#rename as lvl1, lvl2, and lvl3
+
+dat$educ.lvl1<-dat$educ.vgmc
+dat$educ.lvl2<-dat$educ.voting.group
+dat$educ.lvl3<-dat$educ.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered education)
+
+```{r}
+
+EX4.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                gender+occup+age+resid+
+                 educ.lvl1+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX4.mod1)
+(VC.EX4.mod1<-getVC(EX4.mod1))
+getFE(EX4.mod1)
+```
+
+\newpage
+
+### Model 2 (interaction between education and environment attitudes)
+
+```{r}
+
+EX4.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                gender+occup+age+resid+
+                 educ.lvl1+
+                environ.lvl1+
+                 environ.lvl1:educ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+anova(EX4.mod1,EX4.mod2)
+isSingular(EX4.mod2)
+(VC.EX4.mod2<-getVC(EX4.mod2))
+getFE(EX4.mod2)
+
+
+```
+
+
+\newpage
+
+#### Marginal effects for different levels of education
+
+```{r message=FALSE}
+EX4.mod2.trends<-
+  emtrends(EX4.mod2,specs = c("educ.lvl1"),var=c("environ.lvl1"),
+           at=
+             list(educ.lvl1=
+                    c(mean(dat$educ.lvl1)-sd(dat$educ.lvl1),
+                      mean(dat$educ.lvl1),                              mean(dat$educ.lvl1)+sd(dat$educ.lvl1))))
+(EX4.mod2.trends.tab<-data.frame(EX4.mod2.trends))
+
+
+EX4.mod2.trends.tab$p<-
+  2*(1-pnorm(abs(EX4.mod2.trends.tab$environ.lvl1.trend/
+                   EX4.mod2.trends.tab$SE)))
+EX4.mod2.trends.tab$adj.p<-
+  p.adjust(EX4.mod2.trends.tab$p,method="holm")
+
+EX4.mod2.trends.tab<-
+  cbind(group=round(EX4.mod2.trends.tab[,1],2),
+        round(EX4.mod2.trends.tab[,c(2,3)],2),
+        round(EX4.mod2.trends.tab[,c(7,8)],4),
+        round(EX4.mod2.trends.tab[,c(5,6)],2))
+EX4.mod2.trends.tab
+
+
+```
+
+\newpage
+
+## Does the association vary by place of residence (urban/rural)?
+
+### Center the residence variable
+
+```{r}
+
+describe(dat$resid)
+dat$resid.gmc<-dat$resid-mean(dat$resid,na.rm=T)
+
+
+#obtain dataframe with country means and add to data
+
+resid.cntry<-dat %>%
+  group_by(cntry) %>%
+  summarize(resid.cntry=mean(resid.gmc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=resid.cntry,
+               by=c("cntry"))
+
+#center individuals around country means
+
+dat$resid.cntrymc<-dat$resid.gmc-dat$resid.cntry
+
+#obtain dataframe with voting group means and add to data
+
+resid.voting.group<-dat %>%
+  group_by(voting.group) %>%
+  summarize(resid.voting.group=mean(resid.cntrymc,na.rm=T))
+
+dat<-left_join(x=dat,
+               y=resid.voting.group,
+               by=c("voting.group"))
+
+#center individuals around voting group means
+
+dat$resid.vgmc<-dat$resid.cntrymc-dat$resid.voting.group
+
+#describe the variable
+
+describe(dat$resid.vgmc)
+
+#rename as lvl1, lvl2, and lvl3
+
+dat$resid.lvl1<-dat$resid.vgmc
+dat$resid.lvl2<-dat$resid.voting.group
+dat$resid.lvl3<-dat$resid.cntry
+```
+
+\newpage
+
+### Model 1 (Same as H1 selected model but with centered residence)
+
+```{r}
+
+EX5.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                gender+occup+age+educ+
+                 resid.lvl1+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX5.mod1)
+(VC.EX5.mod1<-getVC(EX5.mod1))
+getFE(EX5.mod1)
+```
+
+\newpage
+
+### Model 2 (interaction between residence and environment attitudes)
+
+```{r}
+
+EX5.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                gender+occup+age+educ+
+                 resid.lvl1+
+                environ.lvl1+
+                 environ.lvl1:resid.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+anova(EX5.mod1,EX5.mod2)
+isSingular(EX5.mod2)
+(VC.EX5.mod2<-getVC(EX5.mod2))
+getFE(EX5.mod2)
+
+
+
+
+```
+
+
+\newpage
+
+## Does the association vary by occupational groups
+
+### Model 1 (Same as H1 selected model)
+
+```{r}
+
+EX2.mod1<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+
+isSingular(EX2.mod1)
+getVC(EX2.mod1)
+
+```
+
+\newpage
+
+
+### Model 2 (Interaction between environment and occupational groups)
+
+```{r}
+
+EX2.mod2<-lmer(refugees~(environ.lvl1|voting.group)+
+                (0+environ.lvl1|cntry)+
+                age+gender+educ+resid+occup+
+                environ.lvl1+
+                 occup:environ.lvl1,data=dat,REML=F,
+                 control=lmerControl(optimizer="bobyqa",
+                                     optCtrl=list(maxfun=2e8)))
+
+
+anova(EX2.mod1,EX2.mod2)
+isSingular(EX2.mod2)
+getVC(EX2.mod2)
+
+```
+
+\newpage
+
+#### Marginal effects for each occupation group
+
+```{r message=FALSE}
+EX2.mod2.trends<-emtrends(EX2.mod2,specs = c("occup"),var=c("environ.lvl1"))
+(EX2.mod2.trends.tab<-data.frame(EX2.mod2.trends))
+
+
+EX2.mod2.trends.tab$p<-
+  2*(1-pnorm(abs(EX2.mod2.trends.tab$environ.lvl1.trend/
+                   EX2.mod2.trends.tab$SE)))
+EX2.mod2.trends.tab$adj.p<-
+  p.adjust(EX2.mod2.trends.tab$p,method="holm")
+
+EX2.mod2.trends.tab<-
+  cbind(group=EX2.mod2.trends.tab[,1],
+        round(EX2.mod2.trends.tab[,c(2,3)],2),
+        round(EX2.mod2.trends.tab[,c(7,8)],4),
+        round(EX2.mod2.trends.tab[,c(5,6)],2))
+EX2.mod2.trends.tab
+
+#contrast for all groups against mean of other groups
+contrast(EX2.mod2.trends, "del.eff", by = NULL,adjust=c("holm"))
+
+```
+
+
+
+

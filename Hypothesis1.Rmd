@@ -8,6 +8,7 @@ output:
 ---
 
 
+\newpage
 
 
 # Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes
@@ -321,7 +322,7 @@ write.csv2(voting.group.slopes.dat,"associations_within_voting_groups.csv")
 ```{r, code = readLines("forestplot.R")}
 ```
 
-##### Confidence intervals for supplementary tables
+##### Confidence intervals for supplementary tables and Table 1
 
 ```{r, code = readLines("CI_for_supplement.R")}
 ```

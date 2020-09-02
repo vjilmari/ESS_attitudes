@@ -7,6 +7,9 @@ output:
     toc_depth: 5
 ---
 
+\newpage
+
+
 
 # Hypothesis 4: The strength of the association between environment and refugee attitudes is stronger among those who voted for pro-environment or anti-immigration parties in the previous national elections
 
@@ -55,9 +58,10 @@ anova(H4.mod1,H4.mod2)
 #### Marginal effect for pro-environment and anti-immigration voters
 
 ```{r message=FALSE}
-H4.mod2.trends<-emtrends(H4.mod2,specs = c("all.parties.lvl2"),var=c("environ.lvl1"))
-(H4.mod2.trends.tab<-data.frame(H4.mod2.trends))
-
+H4.mod2.trends<-emtrends(H4.mod2,
+                         specs = c("all.parties.lvl2"),
+                         var=c("environ.lvl1"))
+H4.mod2.trends.tab<-data.frame(H4.mod2.trends)
 
 H4.mod2.trends.tab$p<-
   2*(1-pnorm(abs(H4.mod2.trends.tab$environ.lvl1.trend/
@@ -66,13 +70,22 @@ H4.mod2.trends.tab$adj.p<-
   p.adjust(H4.mod2.trends.tab$p,method="holm")
 
 H4.mod2.trends.tab<-
-  cbind(group=H4.mod2.trends.tab[,1],
-      round(H4.mod2.trends.tab[,c(2,3)],2),
-      round(H4.mod2.trends.tab[,c(7,8)],4),
-      round(H4.mod2.trends.tab[,c(5,6)],2))
+  cbind.data.frame(group=H4.mod2.trends.tab[,"all.parties.lvl2"],
+                   beta=round_tidy(H4.mod2.trends.tab[,"environ.lvl1.trend"],2),
+                   CI=paste0("[",
+                             round_tidy(H4.mod2.trends.tab[,"asymp.LCL"],2),
+                             ", ",
+                             round_tidy(H4.mod2.trends.tab[,"asymp.UCL"],2),
+                             "]"),
+                   p=round_tidy(H4.mod2.trends.tab[,"p"],3),
+                   p.adj=round_tidy(H4.mod2.trends.tab[,"adj.p"],3),
+                   p_less_001=ifelse(H4.mod2.trends.tab[,"p"]<.001,"yes","no"),
+                   p.adj_less_001=ifelse(H4.mod2.trends.tab[,"adj.p"]<.001,"yes","no"))
+
 H4.mod2.trends.tab
 
 write.csv2(H4.mod2.trends.tab,"H4.mod2.trends.tab.csv")
+
 
 #contrast between anti-immigration and pro-environment
 (H4.contrast<-data.frame(pairs(H4.mod2.trends, exclude = c(2:9),reverse=T)))
@@ -89,3 +102,8 @@ contrast(H4.mod2.trends, "del.eff", by = NULL,adjust=c("none"))
 
 
 \newpage
+
+#### Compile Table 2
+
+```{r, code = readLines("Table2.R")}
+```

@@ -28,6 +28,7 @@ library(emmeans)
 library(ggplot2)
 library(metafor)
 library(merTools)
+library(finalfit)
 ```
 
 ## Session information about the packages
@@ -40,7 +41,7 @@ sessionInfo()
 ```
 ## R version 3.6.3 (2020-02-29)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
-## Running under: Windows 10 x64 (build 17763)
+## Running under: Windows 10 x64 (build 19041)
 ## 
 ## Matrix products: default
 ## 
@@ -53,33 +54,35 @@ sessionInfo()
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] merTools_0.5.0  arm_1.10-1      MASS_7.3-51.5   metafor_2.4-0  
-##  [5] ggplot2_3.3.2   emmeans_1.4.6   psych_1.9.12.31 dplyr_0.8.5    
-##  [9] lmerTest_3.1-2  lme4_1.1-23     Matrix_1.2-18  
+##  [1] finalfit_1.0.2  merTools_0.5.0  arm_1.10-1      MASS_7.3-51.5  
+##  [5] metafor_2.4-0   ggplot2_3.3.0   emmeans_1.4.5   psych_1.9.12.31
+##  [9] dplyr_0.8.5     lmerTest_3.1-2  lme4_1.1-23     Matrix_1.2-18  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.4.6        mvtnorm_1.1-0       lattice_0.20-38    
-##  [4] tidyr_1.1.0         zoo_1.8-7           assertthat_0.2.1   
-##  [7] digest_0.6.25       foreach_1.5.0       mime_0.9           
-## [10] R6_2.4.1            backports_1.1.6     evaluate_0.14      
-## [13] coda_0.19-3         pillar_1.4.3        rlang_0.4.6        
-## [16] multcomp_1.4-13     minqa_1.2.4         nloptr_1.2.2.1     
-## [19] rmarkdown_2.1       splines_3.6.3       statmod_1.4.34     
-## [22] stringr_1.4.0       munsell_0.5.0       shiny_1.4.0.2      
-## [25] broom_0.5.6         httpuv_1.5.2        compiler_3.6.3     
-## [28] numDeriv_2016.8-1.1 xfun_0.13           pkgconfig_2.0.3    
-## [31] mnormt_1.5-6        htmltools_0.4.0     tidyselect_1.1.0   
-## [34] tibble_3.0.1        codetools_0.2-16    later_1.0.0        
-## [37] crayon_1.3.4        withr_2.2.0         grid_3.6.3         
-## [40] nlme_3.1-144        xtable_1.8-4        gtable_0.3.0       
-## [43] lifecycle_0.2.0     magrittr_1.5        scales_1.1.1       
-## [46] estimability_1.3    stringi_1.4.6       promises_1.1.0     
-## [49] ellipsis_0.3.1      vctrs_0.3.0         generics_0.0.2     
-## [52] boot_1.3-24         sandwich_2.5-1      blme_1.0-4         
-## [55] TH.data_1.0-10      iterators_1.0.12    tools_3.6.3        
-## [58] glue_1.4.1          purrr_0.3.4         fastmap_1.0.1      
-## [61] abind_1.4-5         parallel_3.6.3      survival_3.1-8     
-## [64] yaml_2.2.1          colorspace_1.4-1    knitr_1.28
+##  [1] tidyr_1.0.2         splines_3.6.3       foreach_1.5.0      
+##  [4] shiny_1.4.0.2       assertthat_0.2.1    statmod_1.4.34     
+##  [7] yaml_2.2.0          numDeriv_2016.8-1.1 pillar_1.4.3       
+## [10] backports_1.1.6     lattice_0.20-38     glue_1.4.0         
+## [13] digest_0.6.25       promises_1.1.0      minqa_1.2.4        
+## [16] colorspace_1.4-1    sandwich_2.5-1      htmltools_0.4.0    
+## [19] httpuv_1.5.2        pkgconfig_2.0.3     broom_0.5.5        
+## [22] purrr_0.3.3         xtable_1.8-4        mvtnorm_1.1-0      
+## [25] scales_1.1.0        later_1.0.0         tibble_3.0.0       
+## [28] generics_0.0.2      ellipsis_0.3.0      TH.data_1.0-10     
+## [31] withr_2.1.2         cli_2.0.2           mnormt_1.5-6       
+## [34] survival_3.1-8      magrittr_1.5        crayon_1.3.4       
+## [37] mime_0.9            estimability_1.3    evaluate_0.14      
+## [40] mice_3.8.0          fansi_0.4.1         nlme_3.1-144       
+## [43] forcats_0.5.0       tools_3.6.3         lifecycle_0.2.0    
+## [46] multcomp_1.4-13     stringr_1.4.0       munsell_0.5.0      
+## [49] compiler_3.6.3      rlang_0.4.5         blme_1.0-4         
+## [52] grid_3.6.3          nloptr_1.2.2.1      iterators_1.0.12   
+## [55] rmarkdown_2.1       boot_1.3-24         gtable_0.3.0       
+## [58] codetools_0.2-16    abind_1.4-5         R6_2.4.1           
+## [61] zoo_1.8-7           knitr_1.28          fastmap_1.0.1      
+## [64] stringi_1.4.6       parallel_3.6.3      Rcpp_1.0.4.6       
+## [67] vctrs_0.2.4         tidyselect_1.0.0    xfun_0.13          
+## [70] coda_0.19-3
 ```
 
 \newpage
@@ -90,14 +93,21 @@ sessionInfo()
 ```r
 #to extract fixed effects
 getFE<-function(model){
+  
   coefs<-data.frame(summary(model)$coefficients)
   coefs$lower<-coefs[,1]-qt(p=.975,df=coefs[,"df"])*coefs[,2]
   coefs$upper<-coefs[,1]+qt(p=.975,df=coefs[,"df"])*coefs[,2]
-  coefs<-cbind.data.frame(round(coefs[,1:4],2),
-                          p=round(coefs[,5],3),
-                          LL=round(coefs$lower,2),
-                          UL=round(coefs$upper,2))
-  #row.names(coefs)<-substr(row.names(coefs),1,25)
+  
+  
+  coefs<-cbind.data.frame(Eff=rownames(coefs),
+                          Est=round_tidy(coefs[,1],2),
+                          SE=round_tidy(coefs[,2],2),
+                          df=round_tidy(coefs[,3],2),
+                          t=round_tidy(coefs[,4],2),
+                          p=round_tidy(coefs[,5],3),
+                          LL=round_tidy(coefs$lower,2),
+                          UL=round_tidy(coefs$upper,2))
+  
   return(coefs)
 }
 
@@ -288,7 +298,8 @@ table(dat$cntry)
 
 ```r
 #make voting group variable names unique to each country
-dat$voting.group<-paste0(dat$cntry,": ",dat$vote.group.combined)
+dat$voting.group<-
+  paste0(dat$cntry,": ",dat$vote.group.combined)
 ```
 
 #### Centering Attitudes towards the Environment
@@ -842,6 +853,7 @@ dat<-dat %>%
 ```
 
 
+
 # Hypothesis 1: There will be a positive association between pro-environment and pro-refugee attitudes
 
 ### Model 0: Intercepts only
@@ -855,8 +867,8 @@ H1.mod0<-lmer(refugees~(1|voting.group)+(1|cntry),
 ```
 
 ```
-##             Estimate Std..Error    df t.value     p    LL   UL
-## (Intercept)     0.08       0.11 19.92    0.69 0.499 -0.16 0.32
+##           Eff  Est   SE    df    t     p    LL   UL
+## 1 (Intercept) 0.08 0.11 19.92 0.69 0.499 -0.16 0.32
 ```
 
 ```r
@@ -936,60 +948,42 @@ anova(H1.mod0,
 ```
 
 ```
-##                                                         Estimate Std..Error
-## (Intercept)                                                 0.06       0.14
-## age                                                         0.00       0.00
-## gender                                                      0.06       0.01
-## educ                                                        0.02       0.00
-## resid                                                      -0.08       0.01
-## occupClerical support workers                              -0.04       0.09
-## occupCraft and related trades workers                      -0.08       0.09
-## occupElementary occupations                                 0.01       0.09
-## occupManagers                                               0.00       0.09
-## occupOther: Not in paid work                                0.16       0.09
-## occupPlant and machine operators, and assemblers           -0.07       0.09
-## occupProfessionals                                          0.10       0.09
-## occupRetired                                               -0.03       0.10
-## occupService and sales workers                             -0.04       0.09
-## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09
-## occupTechnicians and associate professionals               -0.03       0.09
-## occupUnemployed                                            -0.03       0.11
-##                                                               df t.value     p
-## (Intercept)                                                50.42    0.44 0.663
-## age                                                     34095.35    3.30 0.001
-## gender                                                  35598.09    4.77 0.000
-## educ                                                    35706.37    9.28 0.000
-## resid                                                   35657.25   -6.58 0.000
-## occupClerical support workers                           35532.93   -0.40 0.687
-## occupCraft and related trades workers                   35539.44   -0.85 0.398
-## occupElementary occupations                             35540.85    0.14 0.892
-## occupManagers                                           35533.47    0.00 0.998
-## occupOther: Not in paid work                            35696.52    1.71 0.088
-## occupPlant and machine operators, and assemblers        35539.06   -0.77 0.442
-## occupProfessionals                                      35535.19    1.10 0.273
-## occupRetired                                            35538.37   -0.28 0.782
-## occupService and sales workers                          35534.90   -0.40 0.691
-## occupSkilled agricultural, forestry and fishery workers 35544.87   -0.52 0.601
-## occupTechnicians and associate professionals            35532.10   -0.29 0.774
-## occupUnemployed                                         35546.28   -0.23 0.816
-##                                                            LL    UL
-## (Intercept)                                             -0.22  0.35
-## age                                                      0.00  0.00
-## gender                                                   0.03  0.08
-## educ                                                     0.01  0.02
-## resid                                                   -0.10 -0.05
-## occupClerical support workers                           -0.21  0.14
-## occupCraft and related trades workers                   -0.25  0.10
-## occupElementary occupations                             -0.16  0.19
-## occupManagers                                           -0.18  0.18
-## occupOther: Not in paid work                            -0.02  0.34
-## occupPlant and machine operators, and assemblers        -0.24  0.11
-## occupProfessionals                                      -0.08  0.27
-## occupRetired                                            -0.22  0.17
-## occupService and sales workers                          -0.21  0.14
-## occupSkilled agricultural, forestry and fishery workers -0.23  0.14
-## occupTechnicians and associate professionals            -0.20  0.15
-## occupUnemployed                                         -0.24  0.19
+##                                                        Eff   Est   SE       df
+## 1                                              (Intercept)  0.06 0.14    50.42
+## 2                                                      age  0.00 0.00 34095.35
+## 3                                                   gender  0.06 0.01 35598.09
+## 4                                                     educ  0.02 0.00 35706.37
+## 5                                                    resid -0.08 0.01 35657.25
+## 6                            occupClerical support workers -0.04 0.09 35532.93
+## 7                    occupCraft and related trades workers -0.08 0.09 35539.44
+## 8                              occupElementary occupations  0.01 0.09 35540.85
+## 9                                            occupManagers  0.00 0.09 35533.47
+## 10                            occupOther: Not in paid work  0.16 0.09 35696.52
+## 11        occupPlant and machine operators, and assemblers -0.07 0.09 35539.06
+## 12                                      occupProfessionals  0.10 0.09 35535.19
+## 13                                            occupRetired -0.03 0.10 35538.37
+## 14                          occupService and sales workers -0.04 0.09 35534.90
+## 15 occupSkilled agricultural, forestry and fishery workers -0.05 0.09 35544.87
+## 16            occupTechnicians and associate professionals -0.03 0.09 35532.10
+## 17                                         occupUnemployed -0.03 0.11 35546.28
+##        t     p    LL    UL
+## 1   0.44 0.663 -0.22  0.35
+## 2   3.30 0.001  0.00  0.00
+## 3   4.77 0.000  0.03  0.08
+## 4   9.28 0.000  0.01  0.02
+## 5  -6.58 0.000 -0.10 -0.05
+## 6  -0.40 0.687 -0.21  0.14
+## 7  -0.85 0.398 -0.25  0.10
+## 8   0.14 0.892 -0.16  0.19
+## 9   0.00 0.998 -0.18  0.18
+## 10  1.71 0.088 -0.02  0.34
+## 11 -0.77 0.442 -0.24  0.11
+## 12  1.10 0.273 -0.08  0.27
+## 13 -0.28 0.782 -0.22  0.17
+## 14 -0.40 0.691 -0.21  0.14
+## 15 -0.52 0.601 -0.23  0.14
+## 16 -0.29 0.774 -0.20  0.15
+## 17 -0.23 0.816 -0.24  0.19
 ```
 
 ```r
@@ -1113,63 +1107,44 @@ anova(H1.mod1,
 ```
 
 ```
-##                                                         Estimate Std..Error
-## (Intercept)                                                 0.07       0.14
-## age                                                         0.00       0.00
-## gender                                                      0.06       0.01
-## educ                                                        0.01       0.00
-## resid                                                      -0.06       0.01
-## occupClerical support workers                              -0.04       0.09
-## occupCraft and related trades workers                      -0.07       0.09
-## occupElementary occupations                                 0.01       0.09
-## occupManagers                                              -0.02       0.09
-## occupOther: Not in paid work                                0.14       0.09
-## occupPlant and machine operators, and assemblers           -0.06       0.09
-## occupProfessionals                                          0.07       0.09
-## occupRetired                                               -0.03       0.10
-## occupService and sales workers                             -0.04       0.09
-## occupSkilled agricultural, forestry and fishery workers    -0.05       0.09
-## occupTechnicians and associate professionals               -0.03       0.09
-## occupUnemployed                                            -0.02       0.11
-## environ.lvl1                                                0.13       0.00
-##                                                               df t.value     p
-## (Intercept)                                                49.59    0.51 0.611
-## age                                                     34270.64    4.39 0.000
-## gender                                                  35593.07    4.67 0.000
-## educ                                                    35714.29    7.51 0.000
-## resid                                                   35651.76   -5.23 0.000
-## occupClerical support workers                           35528.94   -0.46 0.646
-## occupCraft and related trades workers                   35535.31   -0.76 0.446
-## occupElementary occupations                             35536.62    0.16 0.871
-## occupManagers                                           35529.47   -0.18 0.859
-## occupOther: Not in paid work                            35691.43    1.54 0.123
-## occupPlant and machine operators, and assemblers        35534.89   -0.72 0.474
-## occupProfessionals                                      35531.19    0.83 0.407
-## occupRetired                                            35534.45   -0.34 0.734
-## occupService and sales workers                          35530.91   -0.43 0.668
-## occupSkilled agricultural, forestry and fishery workers 35540.59   -0.58 0.564
-## occupTechnicians and associate professionals            35528.10   -0.36 0.718
-## occupUnemployed                                         35542.75   -0.19 0.852
-## environ.lvl1                                            35459.04   26.76 0.000
-##                                                            LL    UL
-## (Intercept)                                             -0.21  0.36
-## age                                                      0.00  0.00
-## gender                                                   0.03  0.08
-## educ                                                     0.01  0.02
-## resid                                                   -0.08 -0.04
-## occupClerical support workers                           -0.21  0.13
-## occupCraft and related trades workers                   -0.24  0.11
-## occupElementary occupations                             -0.16  0.19
-## occupManagers                                           -0.19  0.16
-## occupOther: Not in paid work                            -0.04  0.32
-## occupPlant and machine operators, and assemblers        -0.24  0.11
-## occupProfessionals                                      -0.10  0.24
-## occupRetired                                            -0.23  0.16
-## occupService and sales workers                          -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers -0.24  0.13
-## occupTechnicians and associate professionals            -0.20  0.14
-## occupUnemployed                                         -0.23  0.19
-## environ.lvl1                                             0.12  0.13
+##                                                        Eff   Est   SE       df
+## 1                                              (Intercept)  0.07 0.14    49.59
+## 2                                                      age  0.00 0.00 34270.64
+## 3                                                   gender  0.06 0.01 35593.07
+## 4                                                     educ  0.01 0.00 35714.29
+## 5                                                    resid -0.06 0.01 35651.76
+## 6                            occupClerical support workers -0.04 0.09 35528.94
+## 7                    occupCraft and related trades workers -0.07 0.09 35535.31
+## 8                              occupElementary occupations  0.01 0.09 35536.62
+## 9                                            occupManagers -0.02 0.09 35529.47
+## 10                            occupOther: Not in paid work  0.14 0.09 35691.43
+## 11        occupPlant and machine operators, and assemblers -0.06 0.09 35534.89
+## 12                                      occupProfessionals  0.07 0.09 35531.19
+## 13                                            occupRetired -0.03 0.10 35534.45
+## 14                          occupService and sales workers -0.04 0.09 35530.91
+## 15 occupSkilled agricultural, forestry and fishery workers -0.05 0.09 35540.59
+## 16            occupTechnicians and associate professionals -0.03 0.09 35528.10
+## 17                                         occupUnemployed -0.02 0.11 35542.75
+## 18                                            environ.lvl1  0.13 0.00 35459.04
+##        t     p    LL    UL
+## 1   0.51 0.611 -0.21  0.36
+## 2   4.39 0.000  0.00  0.00
+## 3   4.67 0.000  0.03  0.08
+## 4   7.51 0.000  0.01  0.02
+## 5  -5.23 0.000 -0.08 -0.04
+## 6  -0.46 0.646 -0.21  0.13
+## 7  -0.76 0.446 -0.24  0.11
+## 8   0.16 0.871 -0.16  0.19
+## 9  -0.18 0.859 -0.19  0.16
+## 10  1.54 0.123 -0.04  0.32
+## 11 -0.72 0.474 -0.24  0.11
+## 12  0.83 0.407 -0.10  0.24
+## 13 -0.34 0.734 -0.23  0.16
+## 14 -0.43 0.668 -0.21  0.13
+## 15 -0.58 0.564 -0.24  0.13
+## 16 -0.36 0.718 -0.20  0.14
+## 17 -0.19 0.852 -0.23  0.19
+## 18 26.76 0.000  0.12  0.13
 ```
 
 ```r
@@ -1256,63 +1231,44 @@ anova(H1.mod2,
 ```
 
 ```
-##                                                         Estimate Std..Error
-## (Intercept)                                                 0.08       0.14
-## age                                                         0.00       0.00
-## gender                                                      0.06       0.01
-## educ                                                        0.01       0.00
-## resid                                                      -0.06       0.01
-## occupClerical support workers                              -0.04       0.09
-## occupCraft and related trades workers                      -0.07       0.09
-## occupElementary occupations                                 0.01       0.09
-## occupManagers                                              -0.02       0.09
-## occupOther: Not in paid work                                0.14       0.09
-## occupPlant and machine operators, and assemblers           -0.07       0.09
-## occupProfessionals                                          0.07       0.09
-## occupRetired                                               -0.04       0.10
-## occupService and sales workers                             -0.04       0.09
-## occupSkilled agricultural, forestry and fishery workers    -0.06       0.09
-## occupTechnicians and associate professionals               -0.03       0.09
-## occupUnemployed                                            -0.03       0.11
-## environ.lvl1                                                0.12       0.01
-##                                                               df t.value     p
-## (Intercept)                                                49.47    0.53 0.598
-## age                                                     34211.38    4.49 0.000
-## gender                                                  35569.60    4.70 0.000
-## educ                                                    35698.92    7.49 0.000
-## resid                                                   35634.38   -5.24 0.000
-## occupClerical support workers                           35508.21   -0.48 0.632
-## occupCraft and related trades workers                   35518.38   -0.77 0.439
-## occupElementary occupations                             35520.28    0.13 0.900
-## occupManagers                                           35507.43   -0.22 0.827
-## occupOther: Not in paid work                            35674.75    1.52 0.127
-## occupPlant and machine operators, and assemblers        35516.07   -0.74 0.460
-## occupProfessionals                                      35512.07    0.79 0.432
-## occupRetired                                            35508.44   -0.36 0.716
-## occupService and sales workers                          35513.92   -0.44 0.657
-## occupSkilled agricultural, forestry and fishery workers 35523.04   -0.63 0.529
-## occupTechnicians and associate professionals            35508.10   -0.38 0.705
-## occupUnemployed                                         35525.32   -0.24 0.812
-## environ.lvl1                                               19.40   11.53 0.000
-##                                                            LL    UL
-## (Intercept)                                             -0.21  0.36
-## age                                                      0.00  0.00
-## gender                                                   0.03  0.08
-## educ                                                     0.01  0.02
-## resid                                                   -0.08 -0.04
-## occupClerical support workers                           -0.22  0.13
-## occupCraft and related trades workers                   -0.24  0.10
-## occupElementary occupations                             -0.16  0.18
-## occupManagers                                           -0.19  0.15
-## occupOther: Not in paid work                            -0.04  0.32
-## occupPlant and machine operators, and assemblers        -0.24  0.11
-## occupProfessionals                                      -0.10  0.24
-## occupRetired                                            -0.23  0.16
-## occupService and sales workers                          -0.21  0.13
-## occupSkilled agricultural, forestry and fishery workers -0.24  0.12
-## occupTechnicians and associate professionals            -0.20  0.14
-## occupUnemployed                                         -0.24  0.18
-## environ.lvl1                                             0.10  0.15
+##                                                        Eff   Est   SE       df
+## 1                                              (Intercept)  0.08 0.14    49.47
+## 2                                                      age  0.00 0.00 34211.38
+## 3                                                   gender  0.06 0.01 35569.60
+## 4                                                     educ  0.01 0.00 35698.92
+## 5                                                    resid -0.06 0.01 35634.38
+## 6                            occupClerical support workers -0.04 0.09 35508.21
+## 7                    occupCraft and related trades workers -0.07 0.09 35518.38
+## 8                              occupElementary occupations  0.01 0.09 35520.28
+## 9                                            occupManagers -0.02 0.09 35507.43
+## 10                            occupOther: Not in paid work  0.14 0.09 35674.75
+## 11        occupPlant and machine operators, and assemblers -0.07 0.09 35516.07
+## 12                                      occupProfessionals  0.07 0.09 35512.07
+## 13                                            occupRetired -0.04 0.10 35508.44
+## 14                          occupService and sales workers -0.04 0.09 35513.92
+## 15 occupSkilled agricultural, forestry and fishery workers -0.06 0.09 35523.04
+## 16            occupTechnicians and associate professionals -0.03 0.09 35508.10
+## 17                                         occupUnemployed -0.03 0.11 35525.32
+## 18                                            environ.lvl1  0.12 0.01    19.40
+##        t     p    LL    UL
+## 1   0.53 0.598 -0.21  0.36
+## 2   4.49 0.000  0.00  0.00
+## 3   4.70 0.000  0.03  0.08
+## 4   7.49 0.000  0.01  0.02
+## 5  -5.24 0.000 -0.08 -0.04
+## 6  -0.48 0.632 -0.22  0.13
+## 7  -0.77 0.439 -0.24  0.10
+## 8   0.13 0.900 -0.16  0.18
+## 9  -0.22 0.827 -0.19  0.15
+## 10  1.52 0.127 -0.04  0.32
+## 11 -0.74 0.460 -0.24  0.11
+## 12  0.79 0.432 -0.10  0.24
+## 13 -0.36 0.716 -0.23  0.16
+## 14 -0.44 0.657 -0.21  0.13
+## 15 -0.63 0.529 -0.24  0.12
+## 16 -0.38 0.705 -0.20  0.14
+## 17 -0.24 0.812 -0.24  0.18
+## 18 11.53 0.000  0.10  0.15
 ```
 
 ```r
@@ -1614,6 +1570,35 @@ m
 grDevices::pdf(file = "forestplot.pdf",family="sans") 
 
 forest.m<-meta::forest(m,overall=T,
+                       #layout = "JAMA",
+                       prediction=F,
+                       leftlabs=c("Country","n"),
+                       print.I2=F,
+                       print.tau2=F,
+                       het.stat=F,
+                       overall.hetstat=F,
+                       text.random="Overall",
+                       #weights=F,
+                       #label.right="Partial Correlation Coefficient",
+                       #bottom.lr=F
+                       rightcols=c("effect", "ci"),
+                       rightlabs = c("","95% CI"),
+                       smlab = "Partial Correlation Coefficient",
+                       weight.study="random"#,
+                       #col.study=col.vect.cntry,
+                       #col.square=col.vect.cntry
+                       
+)
+
+graphics.off()
+
+# png-file for Figure 1
+
+grDevices::png(file = "forestplot.png",family="sans",units = "mm",
+               height=210,width=210,res=300) 
+
+forest.m<-meta::forest(m,overall=T,
+                       plotwidth="11cm",
                        #layout = "JAMA",
                        prediction=F,
                        leftlabs=c("Country","n"),
@@ -2006,7 +1991,7 @@ dev.off()
 ##           1
 ```
 
-##### Confidence intervals for supplementary tables
+##### Confidence intervals for supplementary tables and Table 1
 
 
 ```r
@@ -2217,6 +2202,148 @@ pro.env.r
 
 ```r
 write.csv2(pro.env.r,"pro.env.r.csv")
+      
+
+
+
+
+# For table 1
+
+
+tab1.mod2<-read.csv2("FE.H1.mod1.csv",
+                   stringsAsFactors = F)       
+
+tab1.mod2<-data.frame(Eff=tab1.mod2$Eff,
+                      Est=tab1.mod2$Est,
+                      CI=paste0("[",tab1.mod2[,"LL"],", ",tab1.mod2[,"UL"],"]"),
+                      p=tab1.mod2$p)
+
+tab1.mod3<-read.csv2("FE.H1.mod2.csv",
+                     stringsAsFactors = F)
+
+tab1.mod3<-data.frame(Eff=tab1.mod3$Eff,
+                      Est=tab1.mod3$Est,
+                      CI=paste0("[",tab1.mod3[,"LL"],", ",tab1.mod3[,"UL"],"]"),
+                      p=tab1.mod3$p)
+
+tab1.mod4<-read.csv2("FE.H1.mod3.csv",
+                     stringsAsFactors = F)
+
+tab1.mod4<-data.frame(Eff=tab1.mod4$Eff,
+                      Est=tab1.mod4$Est,
+                      CI=paste0("[",tab1.mod4[,"LL"],", ",tab1.mod4[,"UL"],"]"),
+                      p=tab1.mod4$p)
+
+
+tab1<-full_join(x=tab1.mod2,
+          y=tab1.mod3,
+          by="Eff")
+```
+
+```
+## Warning: Column `Eff` joining factors with different levels, coercing to
+## character vector
+```
+
+```r
+tab1<-full_join(x=tab1,
+                y=tab1.mod4,
+                by="Eff")
+```
+
+```
+## Warning: Column `Eff` joining character vector and factor, coercing into
+## character vector
+```
+
+```r
+tab1
+```
+
+```
+##                                                        Eff Est.x           CI.x
+## 1                                              (Intercept)  0.06  [-0.22, 0.35]
+## 2                                                      age  0.00   [0.00, 0.00]
+## 3                                                   gender  0.06   [0.03, 0.08]
+## 4                                                     educ  0.02   [0.01, 0.02]
+## 5                                                    resid -0.08 [-0.10, -0.05]
+## 6                            occupClerical support workers -0.04  [-0.21, 0.14]
+## 7                    occupCraft and related trades workers -0.08  [-0.25, 0.10]
+## 8                              occupElementary occupations  0.01  [-0.16, 0.19]
+## 9                                            occupManagers  0.00  [-0.18, 0.18]
+## 10                            occupOther: Not in paid work  0.16  [-0.02, 0.34]
+## 11        occupPlant and machine operators, and assemblers -0.07  [-0.24, 0.11]
+## 12                                      occupProfessionals  0.10  [-0.08, 0.27]
+## 13                                            occupRetired -0.03  [-0.22, 0.17]
+## 14                          occupService and sales workers -0.04  [-0.21, 0.14]
+## 15 occupSkilled agricultural, forestry and fishery workers -0.05  [-0.23, 0.14]
+## 16            occupTechnicians and associate professionals -0.03  [-0.20, 0.15]
+## 17                                         occupUnemployed -0.03  [-0.24, 0.19]
+## 18                                            environ.lvl1  <NA>           <NA>
+##      p.x Est.y           CI.y   p.y   Est             CI     p
+## 1  0.663  0.07  [-0.21, 0.36] 0.611  0.08  [-0.21, 0.36] 0.598
+## 2  0.001  0.00   [0.00, 0.00] 0.000  0.00   [0.00, 0.00] 0.000
+## 3  0.000  0.06   [0.03, 0.08] 0.000  0.06   [0.03, 0.08] 0.000
+## 4  0.000  0.01   [0.01, 0.02] 0.000  0.01   [0.01, 0.02] 0.000
+## 5  0.000 -0.06 [-0.08, -0.04] 0.000 -0.06 [-0.08, -0.04] 0.000
+## 6  0.687 -0.04  [-0.21, 0.13] 0.646 -0.04  [-0.22, 0.13] 0.632
+## 7  0.398 -0.07  [-0.24, 0.11] 0.446 -0.07  [-0.24, 0.10] 0.439
+## 8  0.892  0.01  [-0.16, 0.19] 0.871  0.01  [-0.16, 0.18] 0.900
+## 9  0.998 -0.02  [-0.19, 0.16] 0.859 -0.02  [-0.19, 0.15] 0.827
+## 10 0.088  0.14  [-0.04, 0.32] 0.123  0.14  [-0.04, 0.32] 0.127
+## 11 0.442 -0.06  [-0.24, 0.11] 0.474 -0.07  [-0.24, 0.11] 0.460
+## 12 0.273  0.07  [-0.10, 0.24] 0.407  0.07  [-0.10, 0.24] 0.432
+## 13 0.782 -0.03  [-0.23, 0.16] 0.734 -0.04  [-0.23, 0.16] 0.716
+## 14 0.691 -0.04  [-0.21, 0.13] 0.668 -0.04  [-0.21, 0.13] 0.657
+## 15 0.601 -0.05  [-0.24, 0.13] 0.564 -0.06  [-0.24, 0.12] 0.529
+## 16 0.774 -0.03  [-0.20, 0.14] 0.718 -0.03  [-0.20, 0.14] 0.705
+## 17 0.816 -0.02  [-0.23, 0.19] 0.852 -0.03  [-0.24, 0.18] 0.812
+## 18  <NA>  0.13   [0.12, 0.13] 0.000  0.12   [0.10, 0.15] 0.000
+```
+
+```r
+write.csv2(tab1,"tab1.csv")
+
+confint.merMod(H1.mod1,parm="theta_",method="profile",level=.95,oldNames=F)
+```
+
+```
+## Computing profile confidence intervals ...
+```
+
+```
+##                                 2.5 %    97.5 %
+## sd_(Intercept)|voting.group 0.2739203 0.3370940
+## sd_(Intercept)|cntry        0.3716660 0.7102682
+## sigma                       1.0341091 1.0494469
+```
+
+```r
+confint.merMod(H1.mod2,parm="theta_",method="profile",level=.95,oldNames=F)
+```
+
+```
+## Computing profile confidence intervals ...
+```
+
+```
+##                                 2.5 %    97.5 %
+## sd_(Intercept)|voting.group 0.2790412 0.3428484
+## sd_(Intercept)|cntry        0.3719003 0.7110853
+## sigma                       1.0237206 1.0389048
+```
+
+```r
+#don't run the random slopes -model again, CIs below
+#confint.merMod(H1.mod3,parm="theta_",method="profile",level=.95,oldNames=F)
+
+#d_(Intercept)|voting.group                0.2793160 0.34313941
+#cor_environ.lvl1.(Intercept)|voting.group -0.1898851 0.44957436
+#sd_environ.lvl1|voting.group               0.0242823 0.06094131
+#sd_(Intercept)|cntry                       0.3720908 0.71144406
+#cor_environ.lvl1.(Intercept)|cntry        -0.5288256 0.45582915
+#sd_environ.lvl1|cntry                      0.0242841 0.06260749
+#sigma                                      1.0215694 1.03677305
 ```
 
 \newpage
@@ -2233,8 +2360,8 @@ H1.env.mod0<-lmer(environ.gmc~(1|voting.group)+(1|cntry),data=dat,REML=F)
 ```
 
 ```
-##             Estimate Std..Error    df t.value     p    LL  UL
-## (Intercept)     0.05       0.07 20.08    0.78 0.443 -0.09 0.2
+##           Eff  Est   SE    df    t     p    LL   UL
+## 1 (Intercept) 0.05 0.07 20.08 0.78 0.443 -0.09 0.20
 ```
 
 ```r
@@ -2314,60 +2441,42 @@ anova(H1.env.mod0,
 ```
 
 ```
-##                                                         Estimate Std..Error
-## (Intercept)                                                -0.04       0.12
-## age                                                         0.00       0.00
-## gender                                                      0.02       0.01
-## educ                                                        0.03       0.00
-## resid                                                      -0.14       0.01
-## occupClerical support workers                               0.04       0.10
-## occupCraft and related trades workers                      -0.06       0.10
-## occupElementary occupations                                -0.01       0.10
-## occupManagers                                               0.13       0.10
-## occupOther: Not in paid work                                0.16       0.10
-## occupPlant and machine operators, and assemblers           -0.04       0.10
-## occupProfessionals                                          0.21       0.10
-## occupRetired                                                0.06       0.11
-## occupService and sales workers                              0.02       0.10
-## occupSkilled agricultural, forestry and fishery workers     0.05       0.11
-## occupTechnicians and associate professionals                0.06       0.10
-## occupUnemployed                                            -0.03       0.12
-##                                                               df t.value     p
-## (Intercept)                                               188.50   -0.32 0.751
-## age                                                     29829.87   -8.11 0.000
-## gender                                                  35659.58    1.14 0.253
-## educ                                                    35342.84   13.39 0.000
-## resid                                                   35731.67  -10.19 0.000
-## occupClerical support workers                           35578.76    0.42 0.672
-## occupCraft and related trades workers                   35588.19   -0.60 0.548
-## occupElementary occupations                             35591.13   -0.11 0.915
-## occupManagers                                           35579.35    1.33 0.184
-## occupOther: Not in paid work                            35719.64    1.55 0.121
-## occupPlant and machine operators, and assemblers        35588.53   -0.41 0.684
-## occupProfessionals                                      35581.91    2.09 0.037
-## occupRetired                                            35582.94    0.52 0.604
-## occupService and sales workers                          35580.41    0.25 0.806
-## occupSkilled agricultural, forestry and fishery workers 35595.50    0.43 0.664
-## occupTechnicians and associate professionals            35577.81    0.59 0.557
-## occupUnemployed                                         35586.90   -0.25 0.803
-##                                                            LL    UL
-## (Intercept)                                             -0.27  0.20
-## age                                                      0.00  0.00
-## gender                                                  -0.01  0.04
-## educ                                                     0.02  0.03
-## resid                                                   -0.16 -0.11
-## occupClerical support workers                           -0.15  0.24
-## occupCraft and related trades workers                   -0.26  0.14
-## occupElementary occupations                             -0.21  0.19
-## occupManagers                                           -0.06  0.33
-## occupOther: Not in paid work                            -0.04  0.36
-## occupPlant and machine operators, and assemblers        -0.24  0.16
-## occupProfessionals                                       0.01  0.40
-## occupRetired                                            -0.16  0.28
-## occupService and sales workers                          -0.17  0.22
-## occupSkilled agricultural, forestry and fishery workers -0.16  0.25
-## occupTechnicians and associate professionals            -0.14  0.25
-## occupUnemployed                                         -0.27  0.21
+##                                                        Eff   Est   SE       df
+## 1                                              (Intercept) -0.04 0.12   188.50
+## 2                                                      age -0.00 0.00 29829.87
+## 3                                                   gender  0.02 0.01 35659.58
+## 4                                                     educ  0.03 0.00 35342.84
+## 5                                                    resid -0.14 0.01 35731.67
+## 6                            occupClerical support workers  0.04 0.10 35578.76
+## 7                    occupCraft and related trades workers -0.06 0.10 35588.19
+## 8                              occupElementary occupations -0.01 0.10 35591.13
+## 9                                            occupManagers  0.13 0.10 35579.35
+## 10                            occupOther: Not in paid work  0.16 0.10 35719.64
+## 11        occupPlant and machine operators, and assemblers -0.04 0.10 35588.53
+## 12                                      occupProfessionals  0.21 0.10 35581.91
+## 13                                            occupRetired  0.06 0.11 35582.94
+## 14                          occupService and sales workers  0.02 0.10 35580.41
+## 15 occupSkilled agricultural, forestry and fishery workers  0.05 0.11 35595.50
+## 16            occupTechnicians and associate professionals  0.06 0.10 35577.81
+## 17                                         occupUnemployed -0.03 0.12 35586.90
+##         t     p    LL    UL
+## 1   -0.32 0.751 -0.27  0.20
+## 2   -8.11 0.000 -0.00 -0.00
+## 3    1.14 0.253 -0.01  0.04
+## 4   13.39 0.000  0.02  0.03
+## 5  -10.19 0.000 -0.16 -0.11
+## 6    0.42 0.672 -0.15  0.24
+## 7   -0.60 0.548 -0.26  0.14
+## 8   -0.11 0.915 -0.21  0.19
+## 9    1.33 0.184 -0.06  0.33
+## 10   1.55 0.121 -0.04  0.36
+## 11  -0.41 0.684 -0.24  0.16
+## 12   2.09 0.037  0.01  0.40
+## 13   0.52 0.604 -0.16  0.28
+## 14   0.25 0.806 -0.17  0.22
+## 15   0.43 0.664 -0.16  0.25
+## 16   0.59 0.557 -0.14  0.25
+## 17  -0.25 0.803 -0.27  0.21
 ```
 
 ```r
@@ -2491,63 +2600,44 @@ anova(H1.env.mod1,
 ```
 
 ```
-##                                                         Estimate Std..Error
-## (Intercept)                                                -0.04       0.12
-## age                                                         0.00       0.00
-## gender                                                      0.01       0.01
-## educ                                                        0.03       0.00
-## resid                                                      -0.12       0.01
-## occupClerical support workers                               0.05       0.10
-## occupCraft and related trades workers                      -0.05       0.10
-## occupElementary occupations                                -0.01       0.10
-## occupManagers                                               0.13       0.10
-## occupOther: Not in paid work                                0.14       0.10
-## occupPlant and machine operators, and assemblers           -0.03       0.10
-## occupProfessionals                                          0.19       0.10
-## occupRetired                                                0.06       0.11
-## occupService and sales workers                              0.03       0.10
-## occupSkilled agricultural, forestry and fishery workers     0.05       0.10
-## occupTechnicians and associate professionals                0.06       0.10
-## occupUnemployed                                            -0.02       0.12
-## refugees.lvl1                                               0.16       0.01
-##                                                               df t.value     p
-## (Intercept)                                               182.49   -0.30 0.763
-## age                                                     30300.28   -8.71 0.000
-## gender                                                  35654.32    0.49 0.622
-## educ                                                    35392.50   12.22 0.000
-## resid                                                   35728.36   -9.40 0.000
-## occupClerical support workers                           35574.16    0.48 0.629
-## occupCraft and related trades workers                   35583.40   -0.49 0.625
-## occupElementary occupations                             35586.20   -0.12 0.903
-## occupManagers                                           35574.73    1.34 0.181
-## occupOther: Not in paid work                            35722.40    1.35 0.178
-## occupPlant and machine operators, and assemblers        35583.69   -0.30 0.762
-## occupProfessionals                                      35577.21    1.96 0.050
-## occupRetired                                            35578.52    0.56 0.573
-## occupService and sales workers                          35575.86    0.31 0.760
-## occupSkilled agricultural, forestry and fishery workers 35590.53    0.51 0.610
-## occupTechnicians and associate professionals            35573.19    0.63 0.527
-## occupUnemployed                                         35582.73   -0.20 0.838
-## refugees.lvl1                                           35453.62   26.78 0.000
-##                                                            LL    UL
-## (Intercept)                                             -0.27  0.20
-## age                                                      0.00  0.00
-## gender                                                  -0.02  0.03
-## educ                                                     0.02  0.03
-## resid                                                   -0.15 -0.10
-## occupClerical support workers                           -0.15  0.24
-## occupCraft and related trades workers                   -0.24  0.15
-## occupElementary occupations                             -0.21  0.18
-## occupManagers                                           -0.06  0.33
-## occupOther: Not in paid work                            -0.06  0.34
-## occupPlant and machine operators, and assemblers        -0.23  0.17
-## occupProfessionals                                       0.00  0.38
-## occupRetired                                            -0.15  0.28
-## occupService and sales workers                          -0.16  0.22
-## occupSkilled agricultural, forestry and fishery workers -0.15  0.26
-## occupTechnicians and associate professionals            -0.13  0.25
-## occupUnemployed                                         -0.26  0.21
-## refugees.lvl1                                            0.15  0.17
+##                                                        Eff   Est   SE       df
+## 1                                              (Intercept) -0.04 0.12   182.49
+## 2                                                      age -0.00 0.00 30300.28
+## 3                                                   gender  0.01 0.01 35654.32
+## 4                                                     educ  0.03 0.00 35392.50
+## 5                                                    resid -0.12 0.01 35728.36
+## 6                            occupClerical support workers  0.05 0.10 35574.16
+## 7                    occupCraft and related trades workers -0.05 0.10 35583.40
+## 8                              occupElementary occupations -0.01 0.10 35586.20
+## 9                                            occupManagers  0.13 0.10 35574.73
+## 10                            occupOther: Not in paid work  0.14 0.10 35722.40
+## 11        occupPlant and machine operators, and assemblers -0.03 0.10 35583.69
+## 12                                      occupProfessionals  0.19 0.10 35577.21
+## 13                                            occupRetired  0.06 0.11 35578.52
+## 14                          occupService and sales workers  0.03 0.10 35575.86
+## 15 occupSkilled agricultural, forestry and fishery workers  0.05 0.10 35590.53
+## 16            occupTechnicians and associate professionals  0.06 0.10 35573.19
+## 17                                         occupUnemployed -0.02 0.12 35582.73
+## 18                                           refugees.lvl1  0.16 0.01 35453.62
+##        t     p    LL    UL
+## 1  -0.30 0.763 -0.27  0.20
+## 2  -8.71 0.000 -0.00 -0.00
+## 3   0.49 0.622 -0.02  0.03
+## 4  12.22 0.000  0.02  0.03
+## 5  -9.40 0.000 -0.15 -0.10
+## 6   0.48 0.629 -0.15  0.24
+## 7  -0.49 0.625 -0.24  0.15
+## 8  -0.12 0.903 -0.21  0.18
+## 9   1.34 0.181 -0.06  0.33
+## 10  1.35 0.178 -0.06  0.34
+## 11 -0.30 0.762 -0.23  0.17
+## 12  1.96 0.050 -0.00  0.38
+## 13  0.56 0.573 -0.15  0.28
+## 14  0.31 0.760 -0.16  0.22
+## 15  0.51 0.610 -0.15  0.26
+## 16  0.63 0.527 -0.13  0.25
+## 17 -0.20 0.838 -0.26  0.21
+## 18 26.78 0.000  0.15  0.17
 ```
 
 ```r
@@ -2658,63 +2748,44 @@ anova(H1.env.mod2,
 ```
 
 ```
-##                                                         Estimate Std..Error
-## (Intercept)                                                -0.04       0.12
-## age                                                         0.00       0.00
-## gender                                                      0.01       0.01
-## educ                                                        0.03       0.00
-## resid                                                      -0.12       0.01
-## occupClerical support workers                               0.05       0.10
-## occupCraft and related trades workers                      -0.04       0.10
-## occupElementary occupations                                -0.01       0.10
-## occupManagers                                               0.14       0.10
-## occupOther: Not in paid work                                0.14       0.10
-## occupPlant and machine operators, and assemblers           -0.03       0.10
-## occupProfessionals                                          0.19       0.10
-## occupRetired                                                0.06       0.11
-## occupService and sales workers                              0.03       0.10
-## occupSkilled agricultural, forestry and fishery workers     0.05       0.10
-## occupTechnicians and associate professionals                0.07       0.10
-## occupUnemployed                                            -0.02       0.12
-## refugees.lvl1                                               0.16       0.01
-##                                                               df t.value     p
-## (Intercept)                                               181.41   -0.33 0.740
-## age                                                     30229.24   -8.64 0.000
-## gender                                                  35647.27    0.51 0.613
-## educ                                                    35243.03   12.16 0.000
-## resid                                                   35688.34   -9.42 0.000
-## occupClerical support workers                           35558.96    0.52 0.604
-## occupCraft and related trades workers                   35566.00   -0.45 0.652
-## occupElementary occupations                             35571.70   -0.10 0.921
-## occupManagers                                           35560.44    1.37 0.170
-## occupOther: Not in paid work                            35708.21    1.40 0.163
-## occupPlant and machine operators, and assemblers        35566.12   -0.27 0.788
-## occupProfessionals                                      35558.85    1.99 0.047
-## occupRetired                                            35554.14    0.58 0.560
-## occupService and sales workers                          35560.22    0.34 0.735
-## occupSkilled agricultural, forestry and fishery workers 35572.65    0.50 0.615
-## occupTechnicians and associate professionals            35559.38    0.69 0.489
-## occupUnemployed                                         35571.95   -0.19 0.848
-## refugees.lvl1                                              18.18   13.89 0.000
-##                                                            LL    UL
-## (Intercept)                                             -0.27  0.19
-## age                                                      0.00  0.00
-## gender                                                  -0.02  0.03
-## educ                                                     0.02  0.03
-## resid                                                   -0.15 -0.10
-## occupClerical support workers                           -0.14  0.25
-## occupCraft and related trades workers                   -0.24  0.15
-## occupElementary occupations                             -0.20  0.19
-## occupManagers                                           -0.06  0.33
-## occupOther: Not in paid work                            -0.06  0.34
-## occupPlant and machine operators, and assemblers        -0.22  0.17
-## occupProfessionals                                       0.00  0.39
-## occupRetired                                            -0.15  0.28
-## occupService and sales workers                          -0.16  0.23
-## occupSkilled agricultural, forestry and fishery workers -0.15  0.26
-## occupTechnicians and associate professionals            -0.12  0.26
-## occupUnemployed                                         -0.26  0.21
-## refugees.lvl1                                            0.13  0.18
+##                                                        Eff   Est   SE       df
+## 1                                              (Intercept) -0.04 0.12   181.41
+## 2                                                      age -0.00 0.00 30229.24
+## 3                                                   gender  0.01 0.01 35647.27
+## 4                                                     educ  0.03 0.00 35243.03
+## 5                                                    resid -0.12 0.01 35688.34
+## 6                            occupClerical support workers  0.05 0.10 35558.96
+## 7                    occupCraft and related trades workers -0.04 0.10 35566.00
+## 8                              occupElementary occupations -0.01 0.10 35571.70
+## 9                                            occupManagers  0.14 0.10 35560.44
+## 10                            occupOther: Not in paid work  0.14 0.10 35708.21
+## 11        occupPlant and machine operators, and assemblers -0.03 0.10 35566.12
+## 12                                      occupProfessionals  0.19 0.10 35558.85
+## 13                                            occupRetired  0.06 0.11 35554.14
+## 14                          occupService and sales workers  0.03 0.10 35560.22
+## 15 occupSkilled agricultural, forestry and fishery workers  0.05 0.10 35572.65
+## 16            occupTechnicians and associate professionals  0.07 0.10 35559.38
+## 17                                         occupUnemployed -0.02 0.12 35571.95
+## 18                                           refugees.lvl1  0.16 0.01    18.18
+##        t     p    LL    UL
+## 1  -0.33 0.740 -0.27  0.19
+## 2  -8.64 0.000 -0.00 -0.00
+## 3   0.51 0.613 -0.02  0.03
+## 4  12.16 0.000  0.02  0.03
+## 5  -9.42 0.000 -0.15 -0.10
+## 6   0.52 0.604 -0.14  0.25
+## 7  -0.45 0.652 -0.24  0.15
+## 8  -0.10 0.921 -0.20  0.19
+## 9   1.37 0.170 -0.06  0.33
+## 10  1.40 0.163 -0.06  0.34
+## 11 -0.27 0.788 -0.22  0.17
+## 12  1.99 0.047  0.00  0.39
+## 13  0.58 0.560 -0.15  0.28
+## 14  0.34 0.735 -0.16  0.23
+## 15  0.50 0.615 -0.15  0.26
+## 16  0.69 0.489 -0.12  0.26
+## 17 -0.19 0.848 -0.26  0.21
+## 18 13.89 0.000  0.13  0.18
 ```
 
 ```r

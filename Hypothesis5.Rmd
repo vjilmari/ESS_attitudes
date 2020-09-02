@@ -7,6 +7,8 @@ output:
     toc_depth: 5
 ---
 
+\newpage
+
 
 
 # Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically engaged individuals. 

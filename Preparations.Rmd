@@ -22,6 +22,7 @@ library(emmeans)
 library(ggplot2)
 library(metafor)
 library(merTools)
+library(finalfit)
 ```
 
 ## Session information about the packages
@@ -38,14 +39,21 @@ sessionInfo()
 
 #to extract fixed effects
 getFE<-function(model){
+  
   coefs<-data.frame(summary(model)$coefficients)
   coefs$lower<-coefs[,1]-qt(p=.975,df=coefs[,"df"])*coefs[,2]
   coefs$upper<-coefs[,1]+qt(p=.975,df=coefs[,"df"])*coefs[,2]
-  coefs<-cbind.data.frame(round(coefs[,1:4],2),
-                          p=round(coefs[,5],3),
-                          LL=round(coefs$lower,2),
-                          UL=round(coefs$upper,2))
-  #row.names(coefs)<-substr(row.names(coefs),1,25)
+  
+  
+  coefs<-cbind.data.frame(Eff=rownames(coefs),
+                          Est=round_tidy(coefs[,1],2),
+                          SE=round_tidy(coefs[,2],2),
+                          df=round_tidy(coefs[,3],2),
+                          t=round_tidy(coefs[,4],2),
+                          p=round_tidy(coefs[,5],3),
+                          LL=round_tidy(coefs$lower,2),
+                          UL=round_tidy(coefs$upper,2))
+  
   return(coefs)
 }
 
@@ -228,7 +236,8 @@ table(dat$cntry)
 
 ```{r}
 #make voting group variable names unique to each country
-dat$voting.group<-paste0(dat$cntry,": ",dat$vote.group.combined)
+dat$voting.group<-
+  paste0(dat$cntry,": ",dat$vote.group.combined)
 
 ```
 

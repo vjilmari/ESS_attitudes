@@ -1,3 +1,4 @@
-HTML File contains script and output
+HTML File contains script and output, this works in a browser
+MD File contains script and output, this works better in github
 R file contains script
 To run the scripts, dat_no_miss.csv needs to be in same directory as the script files

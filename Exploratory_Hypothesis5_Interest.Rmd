@@ -1,9 +1,17 @@
 ---
 title: "Exlopratory Hypothesis 5 with Political Interest"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
+    toc: yes
+    toc_depth: 5
 ---
 
-# Exploratory Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically interested individuals. 
+\newpage
+
+
+
+# Exploratory Hypothesis 5: The strength of the association between environment and refugee attitudes is stronger among more politically interested individuals.
 
 Omit missing values on political interest item
 

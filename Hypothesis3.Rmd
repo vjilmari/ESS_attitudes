@@ -7,7 +7,7 @@ output:
     toc_depth: 5
 ---
 
-
+\newpage
 
 # Hypothesis 3: Those who voted for anti-immigration parties will report lower pro-environment attitudes than those who voted for pro-environment parties.
 
@@ -118,10 +118,11 @@ anova(H3.mod2)
 #### Marginal means for and contrasts between Pro-environment and Anti-immigration parties
 
 ```{r message=FALSE}
+
 H3.mod2.mmeans<-emmeans(H3.mod2,specs="all.parties.lvl2")
 
 H3.mod2.mmeans.tab<-cbind(group=data.frame(H3.mod2.mmeans)[,1],
-      data.frame(H3.mod2.mmeans)[,2:6])
+                          data.frame(H3.mod2.mmeans)[,2:6])
 H3.mod2.mmeans.tab$p<-
   2*(1-pnorm(abs(H3.mod2.mmeans.tab$emmean/
                    H3.mod2.mmeans.tab$SE)))
@@ -129,10 +130,17 @@ H3.mod2.mmeans.tab$adj.p<-
   p.adjust(H3.mod2.mmeans.tab$p,method="holm")
 
 H3.mod2.mmeans.tab<-
-  cbind(group=H3.mod2.mmeans.tab[,1],
-      round(H3.mod2.mmeans.tab[,c(2,3)],2),
-      round(H3.mod2.mmeans.tab[,c(7,8)],4),
-      round(H3.mod2.mmeans.tab[,c(5,6)],2))
+  cbind.data.frame(group=H3.mod2.mmeans.tab[,"group"],
+        emmean=round_tidy(H3.mod2.mmeans.tab[,"emmean"],2),
+        CI=paste0("[",
+                  round_tidy(H3.mod2.mmeans.tab[,"asymp.LCL"],2),
+                  ", ",
+                  round_tidy(H3.mod2.mmeans.tab[,"asymp.UCL"],2),
+                  "]"),
+        p=round_tidy(H3.mod2.mmeans.tab[,"p"],3),
+        p.adj=round_tidy(H3.mod2.mmeans.tab[,"adj.p"],3),
+        p_less_001=ifelse(H3.mod2.mmeans.tab[,"p"]<.001,"yes","no"),
+        p.adj_less_001=ifelse(H3.mod2.mmeans.tab[,"adj.p"]<.001,"yes","no"))
 H3.mod2.mmeans.tab
 
 write.csv2(H3.mod2.mmeans.tab,"H3.mod2.mmeans.tab.csv")

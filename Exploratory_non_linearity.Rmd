@@ -251,8 +251,7 @@ getVC(EX9RR.NCmod10)
 
 EX9RR.NCmod10.linear<-
   emtrends(EX9RR.NCmod10,specs = c("all.parties.lvl2"),var=c("environ.lvl1"))
-(EX9RR.NCmod10.linear.tab<-data.frame(EX9RR.NCmod10.linear))
-
+EX9RR.NCmod10.linear.tab<-data.frame(EX9RR.NCmod10.linear)
 
 EX9RR.NCmod10.linear.tab$p<-
   2*(1-pnorm(abs(EX9RR.NCmod10.linear.tab$environ.lvl1.trend/
@@ -261,13 +260,23 @@ EX9RR.NCmod10.linear.tab$adj.p<-
   p.adjust(EX9RR.NCmod10.linear.tab$p,method="holm")
 
 EX9RR.NCmod10.linear.tab<-
-  cbind(group=EX9RR.NCmod10.linear.tab[,1],
-        round(EX9RR.NCmod10.linear.tab[,c(2,3)],2),
-        round(EX9RR.NCmod10.linear.tab[,c(7,8)],4),
-        round(EX9RR.NCmod10.linear.tab[,c(5,6)],2))
+  cbind.data.frame(group=EX9RR.NCmod10.linear.tab[,"all.parties.lvl2"],
+                   beta=round_tidy(EX9RR.NCmod10.linear.tab[,"environ.lvl1.trend"],2),
+                   CI=paste0("[",
+                             round_tidy(EX9RR.NCmod10.linear.tab[,"asymp.LCL"],2),
+                             ", ",
+                             round_tidy(EX9RR.NCmod10.linear.tab[,"asymp.UCL"],2),
+                             "]"),
+                   p=round_tidy(EX9RR.NCmod10.linear.tab[,"p"],3),
+                   p.adj=round_tidy(EX9RR.NCmod10.linear.tab[,"adj.p"],3),
+                   p_less_001=ifelse(EX9RR.NCmod10.linear.tab[,"p"]<.001,"yes","no"),
+                   p.adj_less_001=ifelse(EX9RR.NCmod10.linear.tab[,"adj.p"]<.001,"yes","no"))
+
 EX9RR.NCmod10.linear.tab
 
+
 write.csv2(EX9RR.NCmod10.linear.tab,"EX9RR.NCmod10.linear.tab.csv")
+
 
 #contrast for three voting groups
 (EX9RR.more.contrasts<-data.frame(pairs(EX9RR.NCmod10.linear, 
@@ -319,9 +328,9 @@ getVC(EX9RR.NCmod10.ma)
 ```{r message=FALSE, warning=FALSE}
 
 EX9RR.NCmod10.quadratic<-
-  emtrends(EX9RR.NCmod10.ma,specs = c("all.parties.lvl2"),var=c("environ.lvl1.sq"))
-(EX9RR.NCmod10.quadratic.tab<-data.frame(EX9RR.NCmod10.quadratic))
-
+  emtrends(EX9RR.NCmod10.ma,
+           specs = c("all.parties.lvl2"),var=c("environ.lvl1.sq"))
+EX9RR.NCmod10.quadratic.tab<-data.frame(EX9RR.NCmod10.quadratic)
 
 EX9RR.NCmod10.quadratic.tab$p<-
   2*(1-pnorm(abs(EX9RR.NCmod10.quadratic.tab$environ.lvl1.sq.trend/
@@ -330,10 +339,18 @@ EX9RR.NCmod10.quadratic.tab$adj.p<-
   p.adjust(EX9RR.NCmod10.quadratic.tab$p,method="holm")
 
 EX9RR.NCmod10.quadratic.tab<-
-  cbind(group=EX9RR.NCmod10.quadratic.tab[,1],
-        round(EX9RR.NCmod10.quadratic.tab[,c(2,3)],2),
-        round(EX9RR.NCmod10.quadratic.tab[,c(7,8)],4),
-        round(EX9RR.NCmod10.quadratic.tab[,c(5,6)],2))
+  cbind.data.frame(group=EX9RR.NCmod10.quadratic.tab[,"all.parties.lvl2"],
+                   beta=round_tidy(EX9RR.NCmod10.quadratic.tab[,"environ.lvl1.sq.trend"],2),
+                   CI=paste0("[",
+                             round_tidy(EX9RR.NCmod10.quadratic.tab[,"asymp.LCL"],2),
+                             ", ",
+                             round_tidy(EX9RR.NCmod10.quadratic.tab[,"asymp.UCL"],2),
+                             "]"),
+                   p=round_tidy(EX9RR.NCmod10.quadratic.tab[,"p"],3),
+                   p.adj=round_tidy(EX9RR.NCmod10.quadratic.tab[,"adj.p"],3),
+                   p_less_001=ifelse(EX9RR.NCmod10.quadratic.tab[,"p"]<.001,"yes","no"),
+                   p.adj_less_001=ifelse(EX9RR.NCmod10.quadratic.tab[,"adj.p"]<.001,"yes","no"))
+
 EX9RR.NCmod10.quadratic.tab
 
 write.csv2(EX9RR.NCmod10.quadratic.tab,"EX9RR.NCmod10.quadratic.tab.csv")
@@ -353,7 +370,7 @@ write.csv2(EX9RR.NCmod10.quadratic.tab,"EX9RR.NCmod10.quadratic.tab.csv")
 
 EX9RR.NCmod10.cubic<-
   emtrends(EX9RR.NCmod10.ma,specs = c("all.parties.lvl2"),var=c("environ.lvl1.cu"))
-(EX9RR.NCmod10.cubic.tab<-data.frame(EX9RR.NCmod10.cubic))
+EX9RR.NCmod10.cubic.tab<-data.frame(EX9RR.NCmod10.cubic)
 
 
 EX9RR.NCmod10.cubic.tab$p<-
@@ -362,13 +379,21 @@ EX9RR.NCmod10.cubic.tab$p<-
 EX9RR.NCmod10.cubic.tab$adj.p<-
   p.adjust(EX9RR.NCmod10.cubic.tab$p,method="holm")
 
-EX9RR.NCmod10.cubic.tab<-
-  cbind(group=EX9RR.NCmod10.cubic.tab[,1],
-        round(EX9RR.NCmod10.cubic.tab[,c(2,3)],2),
-        round(EX9RR.NCmod10.cubic.tab[,c(7,8)],4),
-        round(EX9RR.NCmod10.cubic.tab[,c(5,6)],2))
-EX9RR.NCmod10.cubic.tab
 
+EX9RR.NCmod10.cubic.tab<-
+  cbind.data.frame(group=EX9RR.NCmod10.cubic.tab[,"all.parties.lvl2"],
+                   beta=round_tidy(EX9RR.NCmod10.cubic.tab[,"environ.lvl1.cu.trend"],2),
+                   CI=paste0("[",
+                             round_tidy(EX9RR.NCmod10.cubic.tab[,"asymp.LCL"],2),
+                             ", ",
+                             round_tidy(EX9RR.NCmod10.cubic.tab[,"asymp.UCL"],2),
+                             "]"),
+                   p=round_tidy(EX9RR.NCmod10.cubic.tab[,"p"],3),
+                   p.adj=round_tidy(EX9RR.NCmod10.cubic.tab[,"adj.p"],3),
+                   p_less_001=ifelse(EX9RR.NCmod10.cubic.tab[,"p"]<.001,"yes","no"),
+                   p.adj_less_001=ifelse(EX9RR.NCmod10.cubic.tab[,"adj.p"]<.001,"yes","no"))
+
+EX9RR.NCmod10.cubic.tab
 write.csv2(EX9RR.NCmod10.cubic.tab,"EX9RR.NCmod10.cubic.tab.csv")
 
 #contrast for three voting groups
@@ -378,6 +403,16 @@ write.csv2(EX9RR.NCmod10.cubic.tab,"EX9RR.NCmod10.cubic.tab.csv")
                                         exclude=c(2:6), by = NULL,adjust=c("none"),reverse=T)))
 
 ```
+
+
+
+\newpage
+
+#### Compile Table 3
+
+```{r, code = readLines("Table3.R")}
+```
+
 
 \newpage
 

@@ -9,6 +9,8 @@ output:
 
 \newpage
 
+
+
 # Hypothesis 2: Those who voted for pro-environment parties will report higher pro-refugee attitudes than those who voted for anti-immigration parties
 
 ### Model 1: random intercepts + covariates (same as in H1)
@@ -58,10 +60,11 @@ anova(H2.mod2)
 #### Marginal means for and contrasts between Pro-environment and Anti-immigration parties
 
 ```{r message=FALSE}
+
 H2.mod2.mmeans<-emmeans(H2.mod2,specs="all.parties.lvl2")
 
 H2.mod2.mmeans.tab<-cbind(group=data.frame(H2.mod2.mmeans)[,1],
-      data.frame(H2.mod2.mmeans)[,2:6])
+                          data.frame(H2.mod2.mmeans)[,2:6])
 H2.mod2.mmeans.tab$p<-
   2*(1-pnorm(abs(H2.mod2.mmeans.tab$emmean/
                    H2.mod2.mmeans.tab$SE)))
@@ -69,10 +72,17 @@ H2.mod2.mmeans.tab$adj.p<-
   p.adjust(H2.mod2.mmeans.tab$p,method="holm")
 
 H2.mod2.mmeans.tab<-
-  cbind(group=H2.mod2.mmeans.tab[,1],
-      round(H2.mod2.mmeans.tab[,c(2,3)],2),
-      round(H2.mod2.mmeans.tab[,c(7,8)],4),
-      round(H2.mod2.mmeans.tab[,c(5,6)],2))
+  cbind.data.frame(group=H2.mod2.mmeans.tab[,"group"],
+        emmean=round_tidy(H2.mod2.mmeans.tab[,"emmean"],2),
+        CI=paste0("[",
+                  round_tidy(H2.mod2.mmeans.tab[,"asymp.LCL"],2),
+                  ", ",
+                  round_tidy(H2.mod2.mmeans.tab[,"asymp.UCL"],2),
+                  "]"),
+        p=round_tidy(H2.mod2.mmeans.tab[,"p"],3),
+        p.adj=round_tidy(H2.mod2.mmeans.tab[,"adj.p"],3),
+        p_less_001=ifelse(H2.mod2.mmeans.tab[,"p"]<.001,"yes","no"),
+        p.adj_less_001=ifelse(H2.mod2.mmeans.tab[,"adj.p"]<.001,"yes","no"))
 H2.mod2.mmeans.tab
 
 write.csv2(H2.mod2.mmeans.tab,"H2.mod2.mmeans.tab.csv")

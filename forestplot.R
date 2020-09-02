@@ -44,6 +44,35 @@ forest.m<-meta::forest(m,overall=T,
 
 graphics.off()
 
+# png-file for Figure 1
+
+grDevices::png(file = "forestplot.png",family="sans",units = "mm",
+               height=210,width=210,res=300) 
+
+forest.m<-meta::forest(m,overall=T,
+                       plotwidth="11cm",
+                       #layout = "JAMA",
+                       prediction=F,
+                       leftlabs=c("Country","n"),
+                       print.I2=F,
+                       print.tau2=F,
+                       het.stat=F,
+                       overall.hetstat=F,
+                       text.random="Overall",
+                       #weights=F,
+                       #label.right="Partial Correlation Coefficient",
+                       #bottom.lr=F
+                       rightcols=c("effect", "ci"),
+                       rightlabs = c("","95% CI"),
+                       smlab = "Partial Correlation Coefficient",
+                       weight.study="random"#,
+                       #col.study=col.vect.cntry,
+                       #col.square=col.vect.cntry
+                       
+)
+
+graphics.off()
+
 
 # print separate plots for voting groups within each country
 

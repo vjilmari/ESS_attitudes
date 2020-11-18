@@ -8,6 +8,7 @@ output:
 ---
 
 
+
 # Exploratory analysis: Is the association linear?
 
 ## Data re-preparations
@@ -781,7 +782,7 @@ EX9.plot.dat<-Rdat %>%
 
 #rename the groups
 EX9.plot.dat$party<-ifelse(EX9.plot.dat$anti.imm.party.dummy==1,"Anti-immigration voters",
-                           ifelse(EX9.plot.dat$pro.env.party.dummy==1,"Pro-environment voters",
+                           ifelse(EX9.plot.dat$pro.env.party.dummy==1,"Pro-environmental voters",
                                   ifelse(EX9.plot.dat$other.party.dummy==1,"Other party voters",
                                          ifelse(EX9.plot.dat$not.eligible.age.dummy==1,"Not eligible to vote: Age",NA))))
 ```
@@ -807,6 +808,7 @@ non.lin.plot<-
   ylab("Attitudes towards Refugees")+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"),
+        
         plot.title = element_text(size = 16, face = "bold"),
         legend.title=element_text(size=14), 
         legend.text=element_text(size=14),
@@ -816,7 +818,7 @@ non.lin.plot<-
                                         colour = "black"))+
   coord_cartesian(xlim=c(-2,2))+
   facet_wrap(~party,ncol=2)+
-  theme(strip.text.x = element_text(size = 12,face="bold"),
+  theme(strip.text.x = element_text(size = 11,face="bold"),
         strip.background = element_blank())
 
 non.lin.plot

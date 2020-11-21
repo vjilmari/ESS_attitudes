@@ -823,12 +823,21 @@ non.lin.plot<-
 
 non.lin.plot
 
-ggsave(plot = non.lin.plot,
-       filename="non.lin.plot.png",device = "png",
-       units = "cm",width=12,height=18,dpi = 600)
+#ggsave(plot = non.lin.plot,
+#       filename="non.lin.plot.png",device = "png",
+#       units = "cm",width=12,height=18,dpi = 600)
+
+#ggsave(plot = non.lin.plot,
+#       filename="non.lin.plot.pdf",device = "pdf",
+#       units = "cm",width=12,height=18,dpi = 600)
+
+
+#ggsave(plot = non.lin.plot,
+#       filename="non.lin.plot.eps",device = "eps",
+#       units = "cm",width=12,height=18,dpi = 600)
 
 ggsave(plot = non.lin.plot,
-       filename="non.lin.plot.pdf",device = "pdf",
+       filename="non.lin.plot.tiff",device = "tiff",
        units = "cm",width=12,height=18,dpi = 600)
 
 ```
